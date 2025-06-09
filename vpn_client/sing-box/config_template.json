@@ -1,0 +1,22 @@
+{
+  "log": {
+    "level": "info"
+  },
+  "inbounds": [
+    {
+      "type": "socks",
+      "listen": "127.0.0.1",
+      "listen_port": 1080
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "vless",
+      "tag": "vless-out",
+      "server": "{{address}}",
+      "server_port": {{port}},
+      "uuid": "{{id}}",
+      "packet_encoding": "xudp"
+    }
+  ]
+}
