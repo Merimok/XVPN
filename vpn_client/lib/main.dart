@@ -119,7 +119,16 @@ class _MyAppState extends State<MyApp> {
         .replaceAll('{{fp}}', selected!.fp);
     final configPath = 'sing-box/config.json';
     await File(configPath).writeAsString(config);
-    _process = await Process.start('sing-box/sing-box.exe', ['run', '-c', configPath]);
+    try {
+      _process =
+          await Process.start('sing-box/sing-box.exe', ['run', '-c', configPath]);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to start: $e')));
+      }
+      return;
+    }
     setState(() {});
   }
 
