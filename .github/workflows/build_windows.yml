@@ -14,9 +14,12 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Download sing-box binary
+        shell: pwsh
         run: |
-          mkdir vpn_client/sing-box
-          curl -Lo vpn_client/sing-box/sing-box.exe https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-windows-amd64.exe
+          if (-Not (Test-Path "vpn_client/sing-box")) {
+            New-Item -ItemType Directory -Path "vpn_client/sing-box"
+          }
+          Invoke-WebRequest -Uri "https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-windows-amd64.exe" -OutFile "vpn_client/sing-box/sing-box.exe"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -35,3 +38,4 @@ jobs:
         with:
           name: build
           path: vpn_client/build/windows/runner/Release
+
