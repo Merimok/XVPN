@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 void main() {
@@ -16,15 +15,16 @@ class Server {
   String sni;
   String sid;
   String fp;
+
   Server({
     required this.name,
     required this.address,
     required this.port,
     required this.id,
-    required this.pbk,
-    required this.sni,
-    required this.sid,
-    required this.fp,
+    this.pbk = '',
+    this.sni = '',
+    this.sid = '',
+    this.fp = 'chrome',
   });
 
   factory Server.fromJson(Map<String, dynamic> json) {
@@ -127,6 +127,7 @@ class _MyAppState extends State<MyApp> {
     final sniController = TextEditingController();
     final sidController = TextEditingController();
     final fpController = TextEditingController(text: 'chrome');
+
     await showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -146,9 +147,7 @@ class _MyAppState extends State<MyApp> {
               ),
               actions: [
                 TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     child: const Text('Cancel')),
                 TextButton(
                     onPressed: () {
