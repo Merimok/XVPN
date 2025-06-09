@@ -8,6 +8,8 @@ Run the app with Flutter:
 
 ```bash
 cd vpn_client
+flutter pub get
+flutter create . --platforms=windows
 flutter run -d windows
 ```
 

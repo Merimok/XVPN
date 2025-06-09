@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+      - run: flutter create . --platforms=windows
+        working-directory: vpn_client
 
     steps:
       - uses: actions/checkout@v3
