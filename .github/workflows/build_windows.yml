@@ -33,6 +33,10 @@ jobs:
         run: flutter pub get
         working-directory: vpn_client
 
+      - name: Add Windows platform
+        run: flutter create --platforms=windows .
+        working-directory: vpn_client
+
       - name: Build Flutter app (Windows)
         run: flutter build windows --release
         working-directory: vpn_client
