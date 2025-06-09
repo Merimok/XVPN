@@ -11,7 +11,4 @@ cd vpn_client
 flutter pub get
 flutter create . --platforms=windows
 flutter run -d windows
-```
-
-A GitHub Actions workflow builds the Windows release on pushes.
 
