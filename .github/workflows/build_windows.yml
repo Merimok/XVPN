@@ -21,13 +21,14 @@ jobs:
 
       - name: Download latest sing-box binary
         shell: bash
+        working-directory: vpn_client
         run: |
           VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep '"tag_name":' | cut -d '"' -f4)
           FILE="sing-box-${VERSION#v}-windows-amd64.exe"
           URL="https://github.com/SagerNet/sing-box/releases/download/${VERSION}/${FILE}"
-          mkdir -p vpn_client/sing-box
+          mkdir -p sing-box
           echo "Downloading $URL..."
-          curl -L "$URL" -o "vpn_client/sing-box/sing-box.exe"
+          curl -L "$URL" -o "sing-box/sing-box.exe"
 
       - name: Install dependencies
         run: flutter pub get
