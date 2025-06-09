@@ -15,4 +15,7 @@ cd vpn_client
 flutter pub get
 flutter create . --platforms=windows
 flutter run -d windows
+```
+
+This project targets Windows 11 and does not require Android builds.
 
