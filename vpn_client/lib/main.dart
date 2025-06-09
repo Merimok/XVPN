@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   runApp(const MyApp());
@@ -89,7 +91,13 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _connect() async {
     if (selected == null) return;
-    final template = await File('sing-box/config_template.json').readAsString();
+    final baseDir = await getApplicationSupportDirectory();
+    await baseDir.create(recursive: true);
+    final templatePath = p.join(baseDir.path, 'config_template.json');
+    final exePath = p.join(baseDir.path, 'sing-box.exe');
+    final configPath = p.join(baseDir.path, 'config.json');
+
+    final template = await File(templatePath).readAsString();
     final config = template
         .replaceAll('{{address}}', selected!.address)
         .replaceAll('{{port}}', selected!.port.toString())
@@ -98,9 +106,8 @@ class _MyAppState extends State<MyApp> {
         .replaceAll('{{sni}}', selected!.sni)
         .replaceAll('{{sid}}', selected!.sid)
         .replaceAll('{{fp}}', selected!.fp);
-    final configPath = 'sing-box/config.json';
     await File(configPath).writeAsString(config);
-    _process = await Process.start('sing-box/sing-box.exe', ['run', '-c', configPath]);
+    _process = await Process.start(exePath, ['run', '-c', configPath]);
     setState(() {});
   }
 
