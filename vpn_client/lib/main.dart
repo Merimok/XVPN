@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,15 +18,16 @@ class Server {
   String sni;
   String sid;
   String fp;
+
   Server({
     required this.name,
     required this.address,
     required this.port,
     required this.id,
-    required this.pbk,
-    required this.sni,
-    required this.sid,
-    required this.fp,
+    this.pbk = '',
+    this.sni = '',
+    this.sid = '',
+    this.fp = 'chrome',
   });
 
   factory Server.fromJson(Map<String, dynamic> json) {
@@ -65,105 +67,83 @@ class _MyAppState extends State<MyApp> {
   Server? selected;
   Process? _process;
   String ping = '';
-  String status = 'Отключено';
-  String logOutput = '';
+  late String _serversPath;
 
   @override
   void initState() {
     super.initState();
-    _loadServers();
+    _init();
+  }
+
+  Future<void> _init() async {
+    final dir = await getApplicationDocumentsDirectory();
+    _serversPath = '${dir.path}/servers.json';
+    await _loadServers();
   }
 
   Future<void> _loadServers() async {
-    final file = File('assets/servers.json');
+    final file = File(_serversPath);
     if (await file.exists()) {
       final data = jsonDecode(await file.readAsString()) as List<dynamic>;
       setState(() {
         servers = data.map((e) => Server.fromJson(e)).toList();
         if (servers.isNotEmpty) selected = servers.first;
       });
+    } else {
+      final data =
+          jsonDecode(await rootBundle.loadString('assets/servers.json')) as List<dynamic>;
+      setState(() {
+        servers = data.map((e) => Server.fromJson(e)).toList();
+        if (servers.isNotEmpty) selected = servers.first;
+      });
+      await _saveServers();
     }
   }
 
   Future<void> _saveServers() async {
-    final file = File('assets/servers.json');
-    await file.writeAsString(jsonEncode(servers.map((e) => e.toJson()).toList()));
+    final file = File(_serversPath);
+    await file.writeAsString(
+        jsonEncode(servers.map((e) => e.toJson()).toList()));
   }
 
   Future<void> _connect() async {
     if (selected == null) return;
-    final exeDir = p.dirname(Platform.resolvedExecutable);
-    final exePath = p.join(exeDir, 'sing-box.exe');
-    final configPath = p.join(exeDir, 'config.json');
-
-    setState(() {
-      status = 'Подключение...';
-      logOutput = '';
-    });
-
-    if (!await File(exePath).exists()) {
-      setState(() {
-        status = 'Ошибка';
-        logOutput = 'sing-box.exe не найден';
-      });
-      return;
-    }
-    if (!await File(configPath).exists()) {
-      setState(() {
-        status = 'Ошибка';
-        logOutput = 'config.json не найден';
-      });
-      return;
-    }
+    final configTemplate = await File('sing-box/config_template.json').readAsString();
+    final config = configTemplate
+        .replaceAll('{{address}}', selected!.address)
+        .replaceAll('{{port}}', selected!.port.toString())
+        .replaceAll('{{id}}', selected!.id)
+        .replaceAll('{{pbk}}', selected!.pbk)
+        .replaceAll('{{sni}}', selected!.sni)
+        .replaceAll('{{sid}}', selected!.sid)
+        .replaceAll('{{fp}}', selected!.fp);
+    final configPath = 'sing-box/config.json';
+    await File(configPath).writeAsString(config);
 
     try {
-      _process = await Process.start(exePath, ['-c', configPath]);
-      _process!.stdout.transform(utf8.decoder).listen((data) {
-        setState(() {
-          logOutput += data;
-        });
-      });
-      _process!.stderr.transform(utf8.decoder).listen((data) {
-        setState(() {
-          logOutput += data;
-          if (data.toLowerCase().contains('tun')) {
-            logOutput +=
-                '\nВозможно, требуется запустить приложение от имени администратора.';
-          }
-        });
-      });
-
-      setState(() {
-        status = 'Подключено';
-      });
+      _process =
+          await Process.start('sing-box/sing-box.exe', ['run', '-c', configPath]);
     } catch (e) {
-      setState(() {
-        status = 'Ошибка';
-        logOutput += 'Не удалось подключиться\n$e';
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to start: $e')));
+      }
+      return;
     }
+    setState(() {});
   }
 
   Future<void> _disconnect() async {
     _process?.kill();
     _process = null;
-    setState(() {
-      status = 'Отключено';
-      logOutput += '\nПроцесс остановлен';
-    });
+    setState(() {});
   }
 
   Future<void> _measurePing() async {
     if (selected == null) return;
     final result = await Process.run('ping', ['-n', '1', selected!.address]);
-    String out;
-    if (result.stdout is List<int>) {
-      out = utf8.decode(result.stdout);
-    } else {
-      out = result.stdout.toString();
-    }
     setState(() {
-      ping = out;
+      ping = result.stdout.toString();
     });
   }
 
@@ -176,51 +156,50 @@ class _MyAppState extends State<MyApp> {
     final sniController = TextEditingController();
     final sidController = TextEditingController();
     final fpController = TextEditingController(text: 'chrome');
+
     await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-              title: const Text('Добавить сервер'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Название')),
-                  TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Адрес')),
-                  TextField(controller: portController, decoration: const InputDecoration(labelText: 'Порт')),
-                  TextField(controller: idController, decoration: const InputDecoration(labelText: 'UUID')),
-                  TextField(controller: pbkController, decoration: const InputDecoration(labelText: 'Public Key')),
-                  TextField(controller: sniController, decoration: const InputDecoration(labelText: 'SNI')),
-                  TextField(controller: sidController, decoration: const InputDecoration(labelText: 'Short ID')),
-                  TextField(controller: fpController, decoration: const InputDecoration(labelText: 'Fingerprint')),
-                ],
-              ),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Отмена')),
-                TextButton(
-                    onPressed: () {
-                      final s = Server(
-                        name: nameController.text,
-                        address: addressController.text,
-                        port: int.tryParse(portController.text) ?? 0,
-                        id: idController.text,
-                        pbk: pbkController.text,
-                        sni: sniController.text,
-                        sid: sidController.text,
-                        fp: fpController.text,
-                      );
-                      setState(() {
-                        servers.add(s);
-                        selected = s;
-                      });
-                      _saveServers();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Добавить')),
-              ],
-            ));
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Add Server'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
+            TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
+            TextField(controller: portController, decoration: const InputDecoration(labelText: 'Port')),
+            TextField(controller: idController, decoration: const InputDecoration(labelText: 'UUID')),
+            TextField(controller: pbkController, decoration: const InputDecoration(labelText: 'Public Key')),
+            TextField(controller: sniController, decoration: const InputDecoration(labelText: 'SNI')),
+            TextField(controller: sidController, decoration: const InputDecoration(labelText: 'Short ID')),
+            TextField(controller: fpController, decoration: const InputDecoration(labelText: 'Fingerprint')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              final s = Server(
+                name: nameController.text,
+                address: addressController.text,
+                port: int.tryParse(portController.text) ?? 0,
+                id: idController.text,
+                pbk: pbkController.text,
+                sni: sniController.text,
+                sid: sidController.text,
+                fp: fpController.text,
+              );
+              setState(() {
+                servers.add(s);
+                selected = s;
+              });
+              _saveServers();
+              Navigator.pop(context);
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _removeServer() async {
@@ -236,7 +215,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: const Text('VLESS VPN Клиент')),
+        appBar: AppBar(title: const Text('VLESS VPN Client')),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -244,12 +223,7 @@ class _MyAppState extends State<MyApp> {
               DropdownButton<Server>(
                 isExpanded: true,
                 value: selected,
-                items: servers
-                    .map((s) => DropdownMenuItem(
-                          value: s,
-                          child: Text(s.name),
-                        ))
-                    .toList(),
+                items: servers.map((s) => DropdownMenuItem(value: s, child: Text(s.name))).toList(),
                 onChanged: (s) {
                   setState(() {
                     selected = s;
@@ -258,38 +232,21 @@ class _MyAppState extends State<MyApp> {
               ),
               Row(
                 children: [
-                  ElevatedButton(onPressed: _process == null ? _connect : null, child: const Text('Подключиться')),
+                  ElevatedButton(onPressed: _process == null ? _connect : null, child: const Text('Connect')),
                   const SizedBox(width: 8),
-                  ElevatedButton(onPressed: _process != null ? _disconnect : null, child: const Text('Отключиться')),
+                  ElevatedButton(onPressed: _process != null ? _disconnect : null, child: const Text('Disconnect')),
                   const SizedBox(width: 8),
-                  ElevatedButton(onPressed: _addServer, child: const Text('Добавить')),
+                  ElevatedButton(onPressed: _addServer, child: const Text('Add')),
                   const SizedBox(width: 8),
-                  ElevatedButton(onPressed: _removeServer, child: const Text('Удалить')),
+                  ElevatedButton(onPressed: _removeServer, child: const Text('Remove')),
                   const SizedBox(width: 8),
-                  ElevatedButton(onPressed: _measurePing, child: const Text('Пинг')),
+                  ElevatedButton(onPressed: _measurePing, child: const Text('Ping')),
                 ],
               ),
               const SizedBox(height: 16),
-              Text('Статус: $status'),
+              Text('Status: ${_process == null ? 'Disconnected' : 'Connected'}'),
               const SizedBox(height: 8),
-              Text('Результат ping:\n$ping'),
-              const SizedBox(height: 8),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Лог output:'),
-              ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: SingleChildScrollView(
-                    child: Text(logOutput),
-                  ),
-                ),
-              ),
+              Text('Ping result:\n$ping'),
             ],
           ),
         ),
