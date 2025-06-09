@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 
@@ -66,30 +67,31 @@ class _MyAppState extends State<MyApp> {
   Server? selected;
   Process? _process;
   String ping = '';
-  late String _serversPath;
-
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    final dir = await getApplicationDocumentsDirectory();
-    _serversPath = '${dir.path}/servers.json';
-    await _loadServers();
-  }
-
-  Future<void> _loadServers() async {
-    final file = File(_serversPath);
-    if (await file.exists()) {
-      final data = jsonDecode(await file.readAsString()) as List<dynamic>;
-      setState(() {
-        servers = data.map((e) => Server.fromJson(e)).toList();
-        if (servers.isNotEmpty) selected = servers.first;
-      });
-    } else {
-      final data = jsonDecode(await rootBundle.loadString('assets/servers.json')) as List<dynamic>;
+    final exeDir = p.dirname(Platform.resolvedExecutable);
+    final exe = File(p.join(exeDir, 'sing-box.exe'));
+    final templateFile = File(p.join('sing-box', 'config_template.json'));
+        logOutput = 'sing-box.exe не найден';
+        logOutput = 'config_template.json не найден';
+    final configPath = p.join(Directory.current.path, 'config.json');
+        logOutput = 'config.json не найден';
+      _process = await Process.start(exe.path, ['-c', configPath]);
+        logOutput += 'Не удалось подключиться\n$e';
+      logOutput += '\nПроцесс остановлен';
+              title: const Text('Добавить сервер'),
+                  TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Название')),
+                  TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Адрес')),
+                  TextField(controller: portController, decoration: const InputDecoration(labelText: 'Порт')),
+                    child: const Text('Отмена')),
+                    child: const Text('Добавить')),
+        appBar: AppBar(title: const Text('VLESS VPN Клиент')),
+                  ElevatedButton(onPressed: _process == null ? _connect : null, child: const Text('Подключиться')),
+                  ElevatedButton(onPressed: _process != null ? _disconnect : null, child: const Text('Отключиться')),
+                  ElevatedButton(onPressed: _addServer, child: const Text('Добавить')),
+                  ElevatedButton(onPressed: _removeServer, child: const Text('Удалить')),
+                  ElevatedButton(onPressed: _measurePing, child: const Text('Пинг')),
+              Text('Статус: $status'),
+              Text('Результат ping:\n$ping'),
+                child: Text('Лог output:'),
       setState(() {
         servers = data.map((e) => Server.fromJson(e)).toList();
         if (servers.isNotEmpty) selected = servers.first;
