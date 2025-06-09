@@ -12,7 +12,20 @@ class Server {
   String address;
   int port;
   String id;
-  Server({required this.name, required this.address, required this.port, required this.id});
+  String pbk;
+  String sni;
+  String sid;
+  String fp;
+  Server({
+    required this.name,
+    required this.address,
+    required this.port,
+    required this.id,
+    required this.pbk,
+    required this.sni,
+    required this.sid,
+    required this.fp,
+  });
 
   factory Server.fromJson(Map<String, dynamic> json) {
     return Server(
@@ -20,6 +33,10 @@ class Server {
       address: json['address'],
       port: json['port'],
       id: json['id'],
+      pbk: json['pbk'] ?? '',
+      sni: json['sni'] ?? '',
+      sid: json['sid'] ?? '',
+      fp: json['fp'] ?? 'chrome',
     );
   }
 
@@ -28,6 +45,10 @@ class Server {
         'address': address,
         'port': port,
         'id': id,
+        'pbk': pbk,
+        'sni': sni,
+        'sid': sid,
+        'fp': fp,
       };
 }
 
@@ -72,7 +93,11 @@ class _MyAppState extends State<MyApp> {
     final config = template
         .replaceAll('{{address}}', selected!.address)
         .replaceAll('{{port}}', selected!.port.toString())
-        .replaceAll('{{id}}', selected!.id);
+        .replaceAll('{{id}}', selected!.id)
+        .replaceAll('{{pbk}}', selected!.pbk)
+        .replaceAll('{{sni}}', selected!.sni)
+        .replaceAll('{{sid}}', selected!.sid)
+        .replaceAll('{{fp}}', selected!.fp);
     final configPath = 'sing-box/config.json';
     await File(configPath).writeAsString(config);
     _process = await Process.start('sing-box/sing-box.exe', ['run', '-c', configPath]);
@@ -98,6 +123,10 @@ class _MyAppState extends State<MyApp> {
     final addressController = TextEditingController();
     final portController = TextEditingController();
     final idController = TextEditingController();
+    final pbkController = TextEditingController();
+    final sniController = TextEditingController();
+    final sidController = TextEditingController();
+    final fpController = TextEditingController(text: 'chrome');
     await showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -109,6 +138,10 @@ class _MyAppState extends State<MyApp> {
                   TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
                   TextField(controller: portController, decoration: const InputDecoration(labelText: 'Port')),
                   TextField(controller: idController, decoration: const InputDecoration(labelText: 'UUID')),
+                  TextField(controller: pbkController, decoration: const InputDecoration(labelText: 'Public Key')),
+                  TextField(controller: sniController, decoration: const InputDecoration(labelText: 'SNI')),
+                  TextField(controller: sidController, decoration: const InputDecoration(labelText: 'Short ID')),
+                  TextField(controller: fpController, decoration: const InputDecoration(labelText: 'Fingerprint')),
                 ],
               ),
               actions: [
@@ -124,6 +157,10 @@ class _MyAppState extends State<MyApp> {
                         address: addressController.text,
                         port: int.tryParse(portController.text) ?? 0,
                         id: idController.text,
+                        pbk: pbkController.text,
+                        sni: sniController.text,
+                        sid: sidController.text,
+                        fp: fpController.text,
                       );
                       setState(() {
                         servers.add(s);

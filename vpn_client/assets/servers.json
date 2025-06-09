@@ -1,14 +1,22 @@
 [
   {
-    "name": "Demo Server 1",
-    "address": "1.1.1.1",
-    "port": 443,
-    "id": "00000000-0000-0000-0000-000000000000"
+    "name": "Tannim-DE",
+    "address": "94.131.110.172",
+    "port": 23209,
+    "id": "331564911",
+    "pbk": "EhZf6JqOLErCdliMk1UBlpojo3cfw244QWtoZ-qUFTc",
+    "sni": "yahoo.com",
+    "sid": "68c55e5189f67c90",
+    "fp": "random"
   },
   {
-    "name": "Demo Server 2",
-    "address": "8.8.8.8",
-    "port": 443,
-    "id": "11111111-1111-1111-1111-111111111111"
+    "name": "Tannim",
+    "address": "62.60.155.42",
+    "port": 55055,
+    "id": "331564911",
+    "pbk": "mfJ3KRZIaWdKmAmopCIKDpljkRW4vqy1UUihlIb4Hzc",
+    "sni": "yahoo.com",
+    "sid": "7cb9a6939d",
+    "fp": "random"
   }
 ]
