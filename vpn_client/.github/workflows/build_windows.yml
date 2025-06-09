@@ -14,9 +14,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Download sing-box binary
+        shell: bash
         run: |
-          mkdir sing-box
-          curl -Lo sing-box/sing-box.exe https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-windows-amd64.exe
+          mkdir -p vpn_client/sing-box
+          curl -Lo vpn_client/sing-box/sing-box.exe https://github.com/SagerNet/sing-box/releases/download/v1.8.6/sing-box-1.8.6-windows-amd64.exe
 
       - uses: subosito/flutter-action@v2
         with:
@@ -26,12 +27,17 @@ jobs:
         run: flutter pub get
         working-directory: vpn_client
 
+      - name: Ensure Windows support
+        run: flutter create . --platforms=windows
+        working-directory: vpn_client
+
       - name: Build app
         run: flutter build windows --release
         working-directory: vpn_client
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: vpn_client/build/windows/runner/Release
+
