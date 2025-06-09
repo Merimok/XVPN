@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -64,27 +66,44 @@ class _MyAppState extends State<MyApp> {
   Server? selected;
   Process? _process;
   String ping = '';
+  late String _serversPath;
 
   @override
   void initState() {
     super.initState();
-    _loadServers();
+    _init();
+  }
+
+  Future<void> _init() async {
+    final dir = await getApplicationDocumentsDirectory();
+    _serversPath = '${dir.path}/servers.json';
+    await _loadServers();
   }
 
   Future<void> _loadServers() async {
-    final file = File('assets/servers.json');
+    final file = File(_serversPath);
     if (await file.exists()) {
       final data = jsonDecode(await file.readAsString()) as List<dynamic>;
       setState(() {
         servers = data.map((e) => Server.fromJson(e)).toList();
         if (servers.isNotEmpty) selected = servers.first;
       });
+    } else {
+      final data =
+          jsonDecode(await rootBundle.loadString('assets/servers.json'))
+              as List<dynamic>;
+      setState(() {
+        servers = data.map((e) => Server.fromJson(e)).toList();
+        if (servers.isNotEmpty) selected = servers.first;
+      });
+      await _saveServers();
     }
   }
 
   Future<void> _saveServers() async {
-    final file = File('assets/servers.json');
-    await file.writeAsString(jsonEncode(servers.map((e) => e.toJson()).toList()));
+    final file = File(_serversPath);
+    await file.writeAsString(
+        jsonEncode(servers.map((e) => e.toJson()).toList()));
   }
 
   Future<void> _connect() async {
