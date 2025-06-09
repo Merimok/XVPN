@@ -19,17 +19,22 @@ jobs:
         with:
           flutter-version: '3.13.0'
 
-      - name: Download sing-box binary
+      - name: Download latest sing-box binary
         shell: bash
+        working-directory: vpn_client
         run: |
-          mkdir -p vpn_client/sing-box
-          curl -Lo vpn_client/sing-box/sing-box.exe https://github.com/SagerNet/sing-box/releases/download/v1.8.6/sing-box-1.8.6-windows-amd64.exe
+          VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep '"tag_name":' | cut -d '"' -f4)
+          FILE="sing-box-${VERSION#v}-windows-amd64.exe"
+          URL="https://github.com/SagerNet/sing-box/releases/download/${VERSION}/${FILE}"
+          mkdir -p sing-box
+          echo "Downloading $URL..."
+          curl -L "$URL" -o "sing-box/sing-box.exe"
 
       - name: Install dependencies
         run: flutter pub get
         working-directory: vpn_client
 
-      - name: Ensure Windows support
+      - name: Add Windows platform
         run: flutter create --platforms=windows .
         working-directory: vpn_client
 
@@ -40,5 +45,5 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build
+          name: vpn-client-windows
           path: vpn_client/build/windows/runner/Release
