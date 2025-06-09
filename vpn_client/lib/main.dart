@@ -64,6 +64,8 @@ class _MyAppState extends State<MyApp> {
   Server? selected;
   Process? _process;
   String ping = '';
+  String status = 'Отключено';
+  String logOutput = '';
 
   @override
   void initState() {
@@ -89,7 +91,27 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _connect() async {
     if (selected == null) return;
-    final template = await File('sing-box/config_template.json').readAsString();
+    final exe = File('sing-box/sing-box.exe');
+    final templateFile = File('sing-box/config_template.json');
+    setState(() {
+      status = 'Подключение...';
+      logOutput = '';
+    });
+    if (!await exe.exists()) {
+      setState(() {
+        status = 'Ошибка';
+        logOutput = 'sing-box.exe not found';
+      });
+      return;
+    }
+    if (!await templateFile.exists()) {
+      setState(() {
+        status = 'Ошибка';
+        logOutput = 'config_template.json not found';
+      });
+      return;
+    }
+    final template = await templateFile.readAsString();
     final config = template
         .replaceAll('{{address}}', selected!.address)
         .replaceAll('{{port}}', selected!.port.toString())
@@ -100,21 +122,56 @@ class _MyAppState extends State<MyApp> {
         .replaceAll('{{fp}}', selected!.fp);
     final configPath = 'sing-box/config.json';
     await File(configPath).writeAsString(config);
-    _process = await Process.start('sing-box/sing-box.exe', ['run', '-c', configPath]);
-    setState(() {});
+    if (!await File(configPath).exists()) {
+      setState(() {
+        status = 'Ошибка';
+        logOutput = 'config.json not found';
+      });
+      return;
+    }
+    try {
+      _process = await Process.start(exe.path, ['run', '-c', configPath]);
+      _process!.stdout.transform(utf8.decoder).listen((data) {
+        setState(() {
+          logOutput += data;
+        });
+      });
+      _process!.stderr.transform(utf8.decoder).listen((data) {
+        setState(() {
+          logOutput += data;
+        });
+      });
+      setState(() {
+        status = 'Подключено';
+      });
+    } catch (e) {
+      setState(() {
+        status = 'Ошибка';
+        logOutput += e.toString();
+      });
+    }
   }
 
   Future<void> _disconnect() async {
     _process?.kill();
     _process = null;
-    setState(() {});
+    setState(() {
+      status = 'Отключено';
+      logOutput += '\nProcess stopped';
+    });
   }
 
   Future<void> _measurePing() async {
     if (selected == null) return;
     final result = await Process.run('ping', ['-n', '1', selected!.address]);
+    String out;
+    if (result.stdout is List<int>) {
+      out = utf8.decode(result.stdout);
+    } else {
+      out = result.stdout.toString();
+    }
     setState(() {
-      ping = result.stdout.toString();
+      ping = out;
     });
   }
 
@@ -220,9 +277,26 @@ class _MyAppState extends State<MyApp> {
                 ],
               ),
               const SizedBox(height: 16),
-              Text('Status: ${_process == null ? 'Disconnected' : 'Connected'}'),
+              Text('Status: $status'),
               const SizedBox(height: 8),
               Text('Ping result:\n$ping'),
+              const SizedBox(height: 8),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Log output:'),
+              ),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: SingleChildScrollView(
+                    child: Text(logOutput),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
