@@ -37,13 +37,23 @@ class VpnEngine {
     if (!await dllFile.exists()) return false;
     try {
       final lib = DynamicLibrary.open(wintunPath);
-      final open = lib.lookupFunction<Pointer<Void> Function(Pointer<Utf16>), Pointer<Void> Function(Pointer<Utf16>)>('WintunOpenAdapter');
-      final create = lib.lookupFunction<Pointer<Void> Function(Pointer<Utf16>, Pointer<Utf16>, Pointer<Void>), Pointer<Void> Function(Pointer<Utf16>, Pointer<Utf16>, Pointer<Void>)>('WintunCreateAdapter');
-      final namePtr = 'XVPN'.toNativeUtf16();
+      final open = lib.lookupFunction<
+          Pointer<Void> Function(Pointer<Utf16>),
+          Pointer<Void> Function(Pointer<Utf16>)>('WintunOpenAdapter');
+      final create = lib.lookupFunction<
+          Pointer<Void> Function(Pointer<Utf16>, Pointer<Utf16>, Pointer<Void>),
+          Pointer<Void> Function(Pointer<Utf16>, Pointer<Utf16>, Pointer<Void>)>('WintunCreateAdapter');
+
+      // Используем промежуточные переменные для конвертации строк
+      final String adapterName = "XVPN";
+      final Pointer<Utf16> namePtr = adapterName.toNativeUtf16();
+
       Pointer<Utf16>? descPtr;
-      var handle = open(namePtr);
+      Pointer<Void> handle = open(namePtr);
+
       if (handle == nullptr) {
-        descPtr = 'Wintun'.toNativeUtf16();
+        final String adapterDesc = "Wintun";
+        descPtr = adapterDesc.toNativeUtf16();
         handle = create(namePtr, descPtr, nullptr);
         if (handle == nullptr) {
           malloc.free(namePtr);
@@ -51,6 +61,7 @@ class VpnEngine {
           return false;
         }
       }
+
       malloc.free(namePtr);
       if (descPtr != null) {
         malloc.free(descPtr);
@@ -67,7 +78,7 @@ class VpnEngine {
 
   Future<Process> startSingBox() async {
     _process = await Process.start(singBoxPath, ['-c', configPath]);
-    // give process a moment to fail if something is wrong
+    // даём процессу момент, чтобы завершиться при ошибке
     await Future.delayed(const Duration(milliseconds: 100));
     return _process!;
   }
@@ -97,7 +108,8 @@ class VpnEngine {
   }
 
   Future<String> ping(String address) async {
-    final args = Platform.isWindows ? ['-n', '1', address] : ['-c', '1', address];
+    final args =
+        Platform.isWindows ? ['-n', '1', address] : ['-c', '1', address];
     final res = await Process.run('ping', args);
     if (res.stdout is List<int>) {
       return utf8.decode(res.stdout);
