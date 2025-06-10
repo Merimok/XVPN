@@ -42,6 +42,11 @@ jobs:
         run: flutter build windows --release
         working-directory: vpn_client
 
+      - name: Copy sing-box.exe to release folder
+        run: copy sing-box\\sing-box.exe build\\windows\\runner\\Release\\sing-box.exe
+        shell: cmd
+        working-directory: vpn_client
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
