@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2025-06-10
+
+### Fixed
+- Fixed syntax error in server_repository_test.dart (missing bracket)
+- Replaced deprecated `foregroundColor` with `TextStyle` in ActionChip for Flutter 3.16 compatibility
+- Improved FakeProcess implementation in widget_test.dart with proper StreamController handling
+- Added proper color styling for ActionChip icons and labels
+- Resolved all compilation errors in test suite
+
+### Technical
+- Ensured full compatibility with Flutter 3.16.0
+- Fixed CI/CD pipeline build failures
+- Improved code robustness and error handling
+
 ## [1.2.0] - 2025-06-10
 
 ### Added
