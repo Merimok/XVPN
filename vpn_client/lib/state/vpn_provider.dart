@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -20,8 +21,12 @@ class VpnProvider extends ChangeNotifier {
   VpnProvider({required this.repository, required this.engine});
 
   Future<void> init() async {
-    servers = await repository.loadServers();
-    if (servers.isNotEmpty) selected = servers.first;
+    try {
+      servers = await repository.loadServers();
+      if (servers.isNotEmpty) selected = servers.first;
+    } catch (e) {
+      logOutput = 'Не удалось загрузить список серверов\n$e';
+    }
     notifyListeners();
   }
 
@@ -38,7 +43,11 @@ class VpnProvider extends ChangeNotifier {
     if (servers.any((s) => s.id == server.id)) return;
     servers.add(server);
     selected = server;
-    await repository.saveServers(servers);
+    try {
+      await repository.saveServers(servers);
+    } catch (e) {
+      logOutput += 'Ошибка сохранения сервера\n$e\n';
+    }
     notifyListeners();
   }
 
@@ -47,7 +56,11 @@ class VpnProvider extends ChangeNotifier {
     if (selected == server) {
       selected = servers.isNotEmpty ? servers.first : null;
     }
-    await repository.saveServers(servers);
+    try {
+      await repository.saveServers(servers);
+    } catch (e) {
+      logOutput += 'Ошибка сохранения списка серверов\n$e\n';
+    }
     notifyListeners();
   }
 
@@ -65,19 +78,27 @@ class VpnProvider extends ChangeNotifier {
 
     if (!await engine.ensureTunAdapter()) {
       status = 'Ошибка';
-      logOutput = 'Не удалось зарегистрировать TUN-адаптер. Убедитесь, что Wintun установлен и вы запустили приложение с правами администратора.';
+      logOutput =
+          'Не удалось зарегистрировать TUN-адаптер. Убедитесь, что Wintun установлен и вы запустили приложение с правами администратора.';
       notifyListeners();
       return;
     }
 
-    if (!await File(engine.singBoxPath).exists()) {
+    if (!await engine.checkFiles()) {
       status = 'Ошибка';
-      logOutput = 'sing-box.exe не найден';
+      logOutput = 'Не найдены исполняемые файлы sing-box';
       notifyListeners();
       return;
     }
 
-    await engine.writeConfig(selected!, bundle: rootBundle);
+    try {
+      await engine.generateConfig(selected!, bundle: rootBundle);
+    } catch (e) {
+      status = 'Ошибка';
+      logOutput = 'Ошибка генерации конфигурации\n$e';
+      notifyListeners();
+      return;
+    }
 
     final test = await engine.testSingBox();
     final err = (test.stderr is List<int>) ? utf8.decode(test.stderr) : test.stderr.toString();
@@ -98,7 +119,13 @@ class VpnProvider extends ChangeNotifier {
         logOutput += e;
         notifyListeners();
       });
-      status = 'Подключено';
+      // verify process started
+      if (await proc.exitCode != 0) {
+        status = 'Ошибка';
+        logOutput += '\nsing-box завершился преждевременно';
+      } else {
+        status = 'Подключено';
+      }
       notifyListeners();
     } catch (e) {
       status = 'Ошибка';
@@ -108,15 +135,22 @@ class VpnProvider extends ChangeNotifier {
   }
 
   Future<void> disconnect() async {
-    engine.stop();
-    status = 'Отключено';
-    logOutput += '\nПроцесс остановлен';
-    notifyListeners();
+    try {
+      engine.stop();
+    } finally {
+      status = 'Отключено';
+      logOutput += '\nПроцесс остановлен';
+      notifyListeners();
+    }
   }
 
   Future<void> measurePing() async {
     if (selected == null) return;
-    ping = await engine.ping(selected!.address);
+    try {
+      ping = await engine.ping(selected!.address);
+    } catch (e) {
+      ping = 'Ошибка ping: $e';
+    }
     notifyListeners();
   }
 }

@@ -48,7 +48,7 @@ void main() {
     engine.stop();
   });
 
-  test('writeConfig generates config file', () async {
+  test('generateConfig generates config file', () async {
     final dir = await Directory.systemTemp.createTemp();
     final path = p.join(dir.path, 'config.json');
     final engine = FakeVpnEngine(path);
@@ -62,7 +62,7 @@ void main() {
       sid: 'sid',
       fp: 'fp',
     );
-    await engine.writeConfig(server, bundle: rootBundle);
+    await engine.generateConfig(server, bundle: rootBundle);
     final file = File(path);
     expect(await file.exists(), isTrue);
     final contents = await file.readAsString();

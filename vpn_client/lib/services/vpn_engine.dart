@@ -20,6 +20,17 @@ class VpnEngine {
 
   String get wintunPath => p.join(exeDir, 'wintun.dll');
 
+  /// Ensure that required binaries are available.
+  Future<bool> checkFiles() async {
+    final exe = File(singBoxPath);
+    if (!await exe.exists()) return false;
+    if (Platform.isWindows) {
+      final dll = File(wintunPath);
+      if (!await dll.exists()) return false;
+    }
+    return true;
+  }
+
   Future<bool> ensureTunAdapter() async {
     if (!Platform.isWindows) return true;
     final dllFile = File(wintunPath);
@@ -56,10 +67,14 @@ class VpnEngine {
 
   Future<Process> startSingBox() async {
     _process = await Process.start(singBoxPath, ['-c', configPath]);
+    // give process a moment to fail if something is wrong
+    await Future.delayed(const Duration(milliseconds: 100));
     return _process!;
   }
 
-  Future<void> writeConfig(Server server, {AssetBundle bundle = rootBundle}) async {
+  /// Generate sing-box configuration from template and save to [configPath].
+  Future<void> generateConfig(Server server,
+      {AssetBundle bundle = rootBundle}) async {
     final template = await bundle.loadString('sing-box/config_template.json');
     final config = template
         .replaceAll('{{address}}', server.address)
@@ -71,6 +86,10 @@ class VpnEngine {
         .replaceAll('{{fp}}', server.fp);
     await File(configPath).writeAsString(config);
   }
+
+  // Deprecated: keep for backward compatibility with older tests.
+  Future<void> writeConfig(Server server, {AssetBundle bundle = rootBundle}) =>
+      generateConfig(server, bundle: bundle);
 
   void stop() {
     _process?.kill();
