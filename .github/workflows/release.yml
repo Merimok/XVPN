@@ -24,6 +24,7 @@ jobs:
         flutter pub get
 
     - name: Add Windows platform (if needed)
+      shell: bash
       run: |
         cd vpn_client
         echo "=== ENSURING WINDOWS PLATFORM ==="
@@ -71,6 +72,7 @@ jobs:
         flutter test
     
     - name: Build Windows release
+      shell: bash
       run: |
         cd vpn_client
         echo "=== BUILDING FLUTTER WINDOWS APP ==="

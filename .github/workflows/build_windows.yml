@@ -54,6 +54,7 @@ jobs:
         working-directory: vpn_client
 
       - name: Add Windows platform
+        shell: bash
         run: |
           echo "=== ENSURING WINDOWS PLATFORM ==="
           echo "Checking Windows platform..."
@@ -69,6 +70,7 @@ jobs:
         working-directory: vpn_client
 
       - name: Build Flutter app (Windows)
+        shell: bash
         run: |
           echo "=== BUILDING FLUTTER WINDOWS APP ==="
           echo "Flutter version:"

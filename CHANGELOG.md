@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.10] - 2025-06-10
+
+### Fixed
+- **PowerShell/Bash Compatibility**: Fixed CI/CD workflows failing with PowerShell parser errors
+- **Shell Environment**: Added explicit `shell: bash` for Windows runners in GitHub Actions
+- **Windows Platform Creation**: Fixed bash syntax errors in Windows platform setup steps
+- **Flutter Build Process**: Resolved shell compatibility issues in build and verification steps
+
+### Improved
+- **CI/CD Reliability**: Enhanced shell compatibility across different runner environments
+- **Error Prevention**: Eliminated PowerShell syntax errors in bash command blocks
+- **Cross-Platform Support**: Better handling of shell differences between runner types
+- **Workflow Stability**: More robust execution of complex bash scripts on Windows
+
+### Technical
+- **Explicit Shell Declaration**: Added `shell: bash` to all bash-dependent workflow steps
+- **Syntax Consistency**: Ensured bash syntax works correctly on Windows runners
+- **Error Elimination**: Fixed PowerShell parser errors in conditional statements
+- **Platform Compatibility**: Enhanced cross-platform workflow execution
+
 ## [1.2.9] - 2025-06-10
 
 ### Fixed
