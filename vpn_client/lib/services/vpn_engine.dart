@@ -28,13 +28,21 @@ class VpnEngine {
       final lib = DynamicLibrary.open(wintunPath);
       final open = lib.lookupFunction<Pointer<Void> Function(Pointer<Utf16>), Pointer<Void> Function(Pointer<Utf16>)>('WintunOpenAdapter');
       final create = lib.lookupFunction<Pointer<Void> Function(Pointer<Utf16>, Pointer<Utf16>, Pointer<Void>), Pointer<Void> Function(Pointer<Utf16>, Pointer<Utf16>, Pointer<Void>)>('WintunCreateAdapter');
-      final name = 'XVPN'.toNativeUtf16();
-      var handle = open(name);
+      final namePtr = 'XVPN'.toNativeUtf16();
+      Pointer<Utf16>? descPtr;
+      var handle = open(namePtr);
       if (handle == nullptr) {
-        handle = create(name, 'Wintun'.toNativeUtf16(), nullptr);
+        descPtr = 'Wintun'.toNativeUtf16();
+        handle = create(namePtr, descPtr, nullptr);
         if (handle == nullptr) {
+          malloc.free(namePtr);
+          malloc.free(descPtr);
           return false;
         }
+      }
+      malloc.free(namePtr);
+      if (descPtr != null) {
+        malloc.free(descPtr);
       }
       return true;
     } catch (_) {
