@@ -14,11 +14,27 @@ class VpnEngine {
 
   String get exeDir => p.dirname(Platform.resolvedExecutable);
 
-  String get singBoxPath => p.join(exeDir, 'sing-box.exe');
+  String get singBoxPath {
+    // В режиме разработки ищем в папке проекта
+    if (Platform.isWindows) {
+      final devPath = p.join(Directory.current.path, 'sing-box', 'sing-box.exe');
+      if (File(devPath).existsSync()) return devPath;
+    }
+    // В продакшене ищем рядом с exe
+    return p.join(exeDir, 'sing-box.exe');
+  }
 
   String get configPath => p.join(exeDir, 'config.json');
 
-  String get wintunPath => p.join(exeDir, 'wintun.dll');
+  String get wintunPath {
+    // В режиме разработки ищем в папке проекта
+    if (Platform.isWindows) {
+      final devPath = p.join(Directory.current.path, 'sing-box', 'wintun.dll');
+      if (File(devPath).existsSync()) return devPath;
+    }
+    // В продакшене ищем рядом с exe
+    return p.join(exeDir, 'wintun.dll');
+  }
 
   /// Ensure that required binaries are available.
   Future<bool> checkFiles() async {
@@ -134,6 +150,12 @@ class VpnEngine {
     result['checks']['sing-box.exe'] = singBoxExists;
     if (!singBoxExists) {
       result['errors'].add('Не найден файл sing-box.exe по пути: $singBoxPath');
+      result['errors'].add('');
+      result['errors'].add('ИНСТРУКЦИЯ ПО УСТАНОВКЕ:');
+      result['errors'].add('1. Перейдите на https://github.com/SagerNet/sing-box/releases');
+      result['errors'].add('2. Скачайте файл sing-box-{version}-windows-amd64.exe');
+      result['errors'].add('3. Переименуйте его в sing-box.exe');
+      result['errors'].add('4. Поместите в папку build/windows/runner/Release/ рядом с vpn_client.exe');
     }
 
     // 2. Проверка Wintun DLL (только для Windows)
@@ -143,6 +165,12 @@ class VpnEngine {
       result['checks']['wintun.dll'] = wintunExists;
       if (!wintunExists) {
         result['errors'].add('Не найден файл wintun.dll по пути: $wintunPath');
+        result['errors'].add('');
+        result['errors'].add('ИНСТРУКЦИЯ ПО УСТАНОВКЕ WINTUN:');
+        result['errors'].add('1. Перейдите на https://www.wintun.net/');
+        result['errors'].add('2. Скачайте "Wintun Library"');
+        result['errors'].add('3. Извлеките файл bin/amd64/wintun.dll из архива');
+        result['errors'].add('4. Поместите wintun.dll рядом с vpn_client.exe');
       }
     } else {
       result['checks']['wintun.dll'] = true; // На Linux не нужен

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/server.dart';
@@ -91,6 +92,16 @@ class HomeScreen extends StatelessWidget {
                 ElevatedButton(
                     onPressed: () => vpn.runDiagnostics(),
                     child: const Text('Диагностика')),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                    onPressed: vpn.logOutput.isNotEmpty 
+                        ? () async {
+                            await Clipboard.setData(ClipboardData(text: vpn.logOutput));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Лог скопирован в буфер обмена')));
+                          }
+                        : null,
+                    child: const Text('Копировать лог')),
               ],
             ),
             const SizedBox(height: 16),
@@ -112,10 +123,28 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text('Результат ping:\n${vpn.ping}'),
             const SizedBox(height: 8),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Лог output:'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Лог output:'),
+                if (vpn.logOutput.isNotEmpty)
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: vpn.logOutput));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Лог скопирован в буфер обмена')),
+                      );
+                    },
+                    icon: const Icon(Icons.copy, size: 16),
+                    label: const Text('Копировать'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: const Size(0, 32),
+                    ),
+                  ),
+              ],
             ),
+            const SizedBox(height: 8),
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -124,7 +153,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.all(8),
                 child: SingleChildScrollView(
-                  child: Text(vpn.logOutput),
+                  child: SelectableText(vpn.logOutput), // Сделаем текст выделяемым
                 ),
               ),
             ),
