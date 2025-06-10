@@ -101,122 +101,127 @@ jobs:
         fi
         
     - name: Verify build output and create directories
-      shell: cmd
+      shell: bash
       run: |
         cd vpn_client
         echo "=== RELEASE BUILD DIAGNOSTIC ==="
         echo "Current directory:"
-        cd
+        pwd
         echo "Listing vpn_client directory:"
-        dir
+        ls -la
         echo "Checking build structure:"
-        if exist build\ (
-          echo "build\ exists"
-          dir build
-          if exist build\windows\ (
-            echo "build\windows\ exists"  
-            if exist build\windows\runner\ (
-              echo "build\windows\runner\ exists"
-              dir build\windows\runner
-            )
-          )
-        )
+        if [ -d "build" ]; then
+          echo "build exists"
+          ls -la build/
+          if [ -d "build/windows" ]; then
+            echo "build/windows exists"  
+            if [ -d "build/windows/runner" ]; then
+              echo "build/windows/runner exists"
+              ls -la build/windows/runner/
+            fi
+          fi
+        fi
         echo "Checking dependencies:"
-        if exist sing-box\ (
-          echo "sing-box\ directory exists"
-          dir sing-box
-        )
+        if [ -d "sing-box" ]; then
+          echo "sing-box directory exists"
+          ls -la sing-box/
+        fi
         
     - name: Copy dependencies to release folder
-      shell: cmd
+      shell: bash
       run: |
         cd vpn_client
         echo "=== COPYING DEPENDENCIES FOR RELEASE ==="
         echo "Creating complete directory structure..."
-        if not exist build\ mkdir build
-        if not exist build\windows\ mkdir build\windows  
-        if not exist build\windows\runner\ mkdir build\windows\runner
-        if not exist build\windows\runner\Release\ mkdir build\windows\runner\Release
+        mkdir -p build/windows/runner/Release
         
         echo "Verifying directory creation:"
-        if exist build\windows\runner\Release\ (
+        if [ -d "build/windows/runner/Release" ]; then
           echo "SUCCESS: Release directory created"
-        ) else (
+        else
           echo "ERROR: Failed to create Release directory"
           exit 1
-        )
+        fi
         
         echo "Copying sing-box.exe..."
-        if exist sing-box\sing-box.exe (
+        if [ -f "sing-box/sing-box.exe" ]; then
           echo "Copying sing-box.exe..."
-          copy /Y sing-box\sing-box.exe build\windows\runner\Release\sing-box.exe
-          if %ERRORLEVEL% EQU 0 (
+          cp -v sing-box/sing-box.exe build/windows/runner/Release/sing-box.exe
+          if [ $? -eq 0 ]; then
             echo "SUCCESS: sing-box.exe copied"
-          ) else (
+          else
             echo "ERROR: Failed to copy sing-box.exe"
             exit 1
-          )
-        ) else (
+          fi
+        else
           echo "ERROR: sing-box.exe not found"
-          if exist sing-box\ (
-            dir sing-box
-          ) else (
+          if [ -d "sing-box" ]; then
+            ls -la sing-box/
+          else
             echo "sing-box directory missing"
-          )
+          fi
           exit 1
-        )
+        fi
         
         echo "Copying wintun.dll..."
-        if exist sing-box\wintun.dll (
+        if [ -f "sing-box/wintun.dll" ]; then
           echo "Copying wintun.dll..."
-          copy /Y sing-box\wintun.dll build\windows\runner\Release\wintun.dll
-          if %ERRORLEVEL% EQU 0 (
+          cp -v sing-box/wintun.dll build/windows/runner/Release/wintun.dll
+          if [ $? -eq 0 ]; then
             echo "SUCCESS: wintun.dll copied"
-          ) else (
+          else
             echo "ERROR: Failed to copy wintun.dll"
             exit 1
-          )
-        ) else (
+          fi
+        else
           echo "ERROR: wintun.dll not found"
-          if exist sing-box\ (
-            dir sing-box
-          )
+          if [ -d "sing-box" ]; then
+            ls -la sing-box/
+          fi
           exit 1
-        )
+        fi
         
         echo "Final verification:"
-        if exist build\windows\runner\Release\ (
+        if [ -d "build/windows/runner/Release" ]; then
           echo "Release directory contents:"
-          dir build\windows\runner\Release
-        )
+          ls -la build/windows/runner/Release/
+        fi
     
     - name: Create release archive
+      shell: bash
       run: |
         cd vpn_client/build/windows/runner/Release
-        7z a -tzip ../../../../XVPN-Windows-${{ github.ref_name }}.zip .
+        # Use 7z or zip to create archive
+        if command -v 7z >/dev/null 2>&1; then
+          7z a -tzip ../../../../XVPN-Windows-${{ github.ref_name }}.zip .
+        else
+          # Fallback to zip command
+          zip -r ../../../../XVPN-Windows-${{ github.ref_name }}.zip .
+        fi
     
     - name: Get release info
       id: release_info
+      shell: bash
       run: |
-        $version = "${{ github.ref_name }}" -replace "^v", ""
-        echo "version=$version" >> $env:GITHUB_OUTPUT
+        version="${{ github.ref_name }}"
+        version="${version#v}"  # Remove 'v' prefix
+        echo "version=$version" >> $GITHUB_OUTPUT
         
         # Extract changelog for this version
-        $changelog = ""
-        if (Test-Path "CHANGELOG.md") {
-          $content = Get-Content "CHANGELOG.md" -Raw
-          $pattern = "## \[$version\].*?(?=## \[|\z)"
-          if ($content -match $pattern) {
-            $changelog = $matches[0]
-          }
-        }
+        changelog=""
+        if [ -f "CHANGELOG.md" ]; then
+          # Try to extract changelog section for this version
+          if grep -q "## \[$version\]" CHANGELOG.md; then
+            changelog=$(sed -n "/## \[$version\]/,/## \[/p" CHANGELOG.md | sed '$d')
+          fi
+        fi
         
-        if ([string]::IsNullOrWhiteSpace($changelog)) {
-          $changelog = "Release $version"
-        }
+        if [ -z "$changelog" ]; then
+          changelog="Release $version"
+        fi
         
         # Save changelog to file
-        $changelog | Out-File -FilePath "release-notes.md" -Encoding UTF8
+        echo "$changelog" > release-notes.md
     
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
