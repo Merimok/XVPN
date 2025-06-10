@@ -7,6 +7,7 @@ class Server {
   String sni;
   String sid;
   String fp;
+  bool isBuiltIn; // Встроенный сервер, который нельзя удалить
 
   Server({
     required this.name,
@@ -17,6 +18,7 @@ class Server {
     this.sni = '',
     this.sid = '',
     this.fp = 'chrome',
+    this.isBuiltIn = false,
   });
 
   factory Server.fromJson(Map<String, dynamic> json) => Server(
@@ -28,6 +30,7 @@ class Server {
         sni: json['sni'] ?? '',
         sid: json['sid'] ?? '',
         fp: json['fp'] ?? 'chrome',
+        isBuiltIn: json['isBuiltIn'] ?? false,
       );
 
   Map<String, dynamic> toJson() => {
@@ -39,6 +42,7 @@ class Server {
         'sni': sni,
         'sid': sid,
         'fp': fp,
+        'isBuiltIn': isBuiltIn,
       };
 }
 

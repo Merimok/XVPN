@@ -17,6 +17,7 @@ class VpnProvider extends ChangeNotifier {
   String ping = '';
   String status = 'Отключено';
   String logOutput = '';
+  bool filesReady = false;
 
   VpnProvider({required this.repository, required this.engine});
 
@@ -27,20 +28,82 @@ class VpnProvider extends ChangeNotifier {
     } catch (e) {
       logOutput = 'Не удалось загрузить список серверов\n$e';
     }
+    
+    // Проверяем наличие необходимых файлов
+    filesReady = await engine.checkFiles();
+    if (!filesReady) {
+      logOutput += '\nНе найдены необходимые файлы (sing-box.exe)';
+    }
+    
+    notifyListeners();
+  }
+
+  /// Полная диагностика готовности системы
+  Future<void> runDiagnostics() async {
+    logOutput = 'Запуск диагностики...\n';
+    notifyListeners();
+
+    try {
+      final diagnosis = await engine.diagnoseSystem();
+      
+      logOutput += '=== ДИАГНОСТИКА СИСТЕМЫ ===\n';
+      
+      // Показать результаты проверок
+      final checks = diagnosis['checks'] as Map<String, bool>;
+      checks.forEach((check, result) {
+        final status = result ? '✓' : '✗';
+        logOutput += '$status $check: ${result ? 'OK' : 'FAILED'}\n';
+      });
+      
+      // Показать ошибки
+      final errors = diagnosis['errors'] as List<String>;
+      if (errors.isNotEmpty) {
+        logOutput += '\n=== ОШИБКИ ===\n';
+        for (final error in errors) {
+          logOutput += '• $error\n';
+        }
+      }
+      
+      // Показать предупреждения
+      final warnings = diagnosis['warnings'] as List<String>;
+      if (warnings.isNotEmpty) {
+        logOutput += '\n=== ПРЕДУПРЕЖДЕНИЯ ===\n';
+        for (final warning in warnings) {
+          logOutput += '• $warning\n';
+        }
+      }
+      
+      // Общий статус
+      final ready = diagnosis['ready'] as bool;
+      logOutput += '\n=== РЕЗУЛЬТАТ ===\n';
+      logOutput += ready 
+          ? '✓ Система готова к работе VPN' 
+          : '✗ Система НЕ готова к работе VPN';
+      
+      filesReady = ready;
+      
+    } catch (e) {
+      logOutput += 'Ошибка диагностики: $e\n';
+      filesReady = false;
+    }
+    
     notifyListeners();
   }
 
   Future<void> addServer(Server server) async {
-    final uuidReg = RegExp(
-        r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\$');
-    if (!uuidReg.hasMatch(server.id) ||
+    // Проверяем базовые параметры (UUID может быть любым непустым строковым идентификатором)
+    if (server.id.isEmpty ||
         server.address.isEmpty ||
         server.port <= 0) {
       logOutput += 'Неверные параметры сервера\n';
       notifyListeners();
       return;
     }
-    if (servers.any((s) => s.id == server.id)) return;
+    if (servers.any((s) => s.id == server.id)) {
+      logOutput += 'Сервер с таким ID уже существует\n';
+      notifyListeners();
+      return;
+    }
     servers.add(server);
     selected = server;
     try {
@@ -52,6 +115,11 @@ class VpnProvider extends ChangeNotifier {
   }
 
   Future<void> removeServer(Server server) async {
+    if (server.isBuiltIn) {
+      logOutput += 'Нельзя удалить встроенный сервер\n';
+      notifyListeners();
+      return;
+    }
     servers.remove(server);
     if (selected == server) {
       selected = servers.isNotEmpty ? servers.first : null;

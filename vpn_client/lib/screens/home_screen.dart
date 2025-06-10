@@ -30,8 +30,9 @@ class HomeScreen extends StatelessWidget {
             Row(
               children: [
                 ElevatedButton(
-                    onPressed:
-                        vpn.status != 'Подключено' ? vpn.connect : null,
+                    onPressed: vpn.filesReady && 
+                              vpn.status != 'Подключено' && 
+                              vpn.selected != null ? vpn.connect : null,
                     child: const Text('Подключиться')),
                 const SizedBox(width: 8),
                 ElevatedButton(
@@ -63,6 +64,13 @@ class HomeScreen extends StatelessWidget {
                         final srv = parseVless(controller.text.trim());
                         if (srv != null) {
                           await vpn.addServer(srv);
+                          if (!vpn.logOutput.contains('Неверные параметры')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Сервер успешно добавлен!')));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Ошибка: ${vpn.logOutput.split('\n').last}')));
+                          }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Неверный VLESS URL')));
@@ -72,14 +80,34 @@ class HomeScreen extends StatelessWidget {
                     child: const Text('Добавить')),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                    onPressed:
-                        vpn.selected != null ? () => vpn.removeServer(vpn.selected!) : null,
+                    onPressed: vpn.selected != null && !vpn.selected!.isBuiltIn 
+                        ? () => vpn.removeServer(vpn.selected!) 
+                        : null,
                     child: const Text('Удалить')),
                 const SizedBox(width: 8),
-                ElevatedButton(onPressed: vpn.measurePing, child: const Text('Пинг')),
+                ElevatedButton(onPressed: vpn.selected != null ? vpn.measurePing : null, 
+                              child: const Text('Пинг')),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                    onPressed: () => vpn.runDiagnostics(),
+                    child: const Text('Диагностика')),
               ],
             ),
             const SizedBox(height: 16),
+            if (!vpn.filesReady)
+              Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  border: Border.all(color: Colors.red),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  '⚠️ Не найден файл sing-box.exe. Подключение невозможно.',
+                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                ),
+              ),
             Text('Статус: ${vpn.status}'),
             const SizedBox(height: 8),
             Text('Результат ping:\n${vpn.ping}'),

@@ -118,4 +118,153 @@ class VpnEngine {
     }
     return res.stdout.toString();
   }
+
+  /// Комплексная проверка готовности системы к работе VPN
+  Future<Map<String, dynamic>> diagnoseSystem() async {
+    final result = <String, dynamic>{
+      'ready': false,
+      'errors': <String>[],
+      'warnings': <String>[],
+      'checks': <String, bool>{}
+    };
+
+    // 1. Проверка исполняемого файла sing-box
+    final singBoxFile = File(singBoxPath);
+    final singBoxExists = await singBoxFile.exists();
+    result['checks']['sing-box.exe'] = singBoxExists;
+    if (!singBoxExists) {
+      result['errors'].add('Не найден файл sing-box.exe по пути: $singBoxPath');
+    }
+
+    // 2. Проверка Wintun DLL (только для Windows)
+    if (Platform.isWindows) {
+      final wintunFile = File(wintunPath);
+      final wintunExists = await wintunFile.exists();
+      result['checks']['wintun.dll'] = wintunExists;
+      if (!wintunExists) {
+        result['errors'].add('Не найден файл wintun.dll по пути: $wintunPath');
+      }
+    } else {
+      result['checks']['wintun.dll'] = true; // На Linux не нужен
+    }
+
+    // 3. Проверка прав администратора (косвенно через создание TUN-адаптера)
+    if (Platform.isWindows && result['checks']['wintun.dll'] == true) {
+      try {
+        final tunReady = await ensureTunAdapter();
+        result['checks']['tun_adapter'] = tunReady;
+        if (!tunReady) {
+          result['errors'].add('Не удается создать TUN-адаптер. Требуются права администратора.');
+        }
+      } catch (e) {
+        result['checks']['tun_adapter'] = false;
+        result['errors'].add('Ошибка при создании TUN-адаптера: $e');
+      }
+    } else {
+      result['checks']['tun_adapter'] = !Platform.isWindows; // На Linux проще с TUN
+    }
+
+    // 4. Проверка конфигурационного шаблона
+    try {
+      final template = await rootBundle.loadString('sing-box/config_template.json');
+      result['checks']['config_template'] = template.isNotEmpty;
+      if (template.isEmpty) {
+        result['errors'].add('Пустой конфигурационный шаблон');
+      }
+    } catch (e) {
+      result['checks']['config_template'] = false;
+      result['errors'].add('Не удается загрузить конфигурационный шаблон: $e');
+    }
+
+    // 5. Тест запуска sing-box (если файл существует)
+    if (singBoxExists) {
+      try {
+        final testResult = await testSingBox();
+        result['checks']['sing_box_test'] = testResult.exitCode == 0;
+        if (testResult.exitCode != 0) {
+          final error = testResult.stderr.toString();
+          result['warnings'].add('sing-box test завершился с ошибкой: $error');
+        }
+      } catch (e) {
+        result['checks']['sing_box_test'] = false;
+        result['errors'].add('Не удается запустить sing-box test: $e');
+      }
+    } else {
+      result['checks']['sing_box_test'] = false;
+    }
+
+    // Общая готовность
+    result['ready'] = result['checks'].values.every((check) => check == true);
+
+    return result;
+  }
+
+  /// Более детальная проверка TUN-адаптера с диагностикой
+  Future<Map<String, dynamic>> checkTunAdapter() async {
+    final result = <String, dynamic>{
+      'available': false,
+      'error': '',
+      'details': <String>[]
+    };
+
+    if (!Platform.isWindows) {
+      result['available'] = true;
+      result['details'].add('Linux: TUN поддерживается системой');
+      return result;
+    }
+
+    final dllFile = File(wintunPath);
+    if (!await dllFile.exists()) {
+      result['error'] = 'Файл wintun.dll не найден';
+      result['details'].add('Путь: $wintunPath');
+      result['details'].add('Решение: Скачайте wintun.dll из официального сайта Wintun');
+      return result;
+    }
+
+    try {
+      final lib = DynamicLibrary.open(wintunPath);
+      
+      // Проверяем доступность функций
+      try {
+        lib.lookupFunction<
+            Pointer<Void> Function(Pointer<Utf16>),
+            Pointer<Void> Function(Pointer<Utf16>)>('WintunOpenAdapter');
+        result['details'].add('✓ Функция WintunOpenAdapter найдена');
+      } catch (e) {
+        result['error'] = 'Неверная версия wintun.dll';
+        result['details'].add('✗ Функция WintunOpenAdapter недоступна');
+        return result;
+      }
+
+      try {
+        lib.lookupFunction<
+            Pointer<Void> Function(Pointer<Utf16>, Pointer<Utf16>, Pointer<Void>),
+            Pointer<Void> Function(Pointer<Utf16>, Pointer<Utf16>, Pointer<Void>)>('WintunCreateAdapter');
+        result['details'].add('✓ Функция WintunCreateAdapter найдена');
+      } catch (e) {
+        result['error'] = 'Неверная версия wintun.dll';
+        result['details'].add('✗ Функция WintunCreateAdapter недоступна');
+        return result;
+      }
+
+      // Пытаемся создать адаптер
+      final success = await ensureTunAdapter();
+      if (success) {
+        result['available'] = true;
+        result['details'].add('✓ TUN-адаптер XVPN создан успешно');
+      } else {
+        result['error'] = 'Не удалось создать TUN-адаптер';
+        result['details'].add('✗ Возможные причины:');
+        result['details'].add('  - Нет прав администратора');
+        result['details'].add('  - Драйвер Wintun не установлен');
+        result['details'].add('  - Другой VPN уже использует адаптер');
+      }
+
+    } catch (e) {
+      result['error'] = 'Ошибка при загрузке wintun.dll: $e';
+      result['details'].add('Возможно поврежден файл wintun.dll');
+    }
+
+    return result;
+  }
 }
