@@ -53,7 +53,7 @@ class HomePage extends StatelessWidget {
                         child: Text(s.name),
                       ))
                   .toList(),
-              onChanged: (s) => vpn.selected = s,
+              onChanged: (s) => vpn.selectServer(s),
             ),
             Row(
               children: [

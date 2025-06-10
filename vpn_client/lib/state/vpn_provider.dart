@@ -41,6 +41,11 @@ class VpnProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void selectServer(Server? s) {
+    selected = s;
+    notifyListeners();
+  }
+
   Future<void> connect() async {
     if (selected == null) return;
 
