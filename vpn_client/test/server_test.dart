@@ -23,6 +23,7 @@ void main() {
     expect(s2.sni, s.sni);
     expect(s2.sid, s.sid);
     expect(s2.fp, s.fp);
+    expect(s2.isBuiltIn, s.isBuiltIn);
   });
 
   group('parseVless', () {
