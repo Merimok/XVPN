@@ -26,19 +26,28 @@ jobs:
           VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep '"tag_name":' | cut -d '"' -f4)
           FILE="sing-box-${VERSION#v}-windows-amd64.exe"
           URL="https://github.com/SagerNet/sing-box/releases/download/${VERSION}/${FILE}"
+          echo "Creating directory vpn_client/sing-box..."
           mkdir -p vpn_client/sing-box
-          echo "Downloading $URL..."
+          echo "Downloading sing-box from: $URL"
           curl -L "$URL" -o "vpn_client/sing-box/sing-box.exe"
+          echo "Download completed. File size:"
+          ls -la vpn_client/sing-box/sing-box.exe
 
       - name: Download Wintun DLL
         shell: bash
         run: |
           echo "Downloading Wintun DLL..."
           curl -L "https://www.wintun.net/builds/wintun-0.14.1.zip" -o wintun.zip
+          echo "Extracting Wintun..."
           unzip -q wintun.zip
+          echo "Creating directory vpn_client/sing-box (if not exists)..."
           mkdir -p vpn_client/sing-box
+          echo "Copying wintun.dll..."
           cp wintun/bin/amd64/wintun.dll vpn_client/sing-box/wintun.dll
+          echo "Cleaning up..."
           rm -rf wintun.zip wintun
+          echo "Wintun download completed. File size:"
+          ls -la vpn_client/sing-box/wintun.dll
 
       - name: Install dependencies
         run: flutter pub get
@@ -56,8 +65,21 @@ jobs:
         shell: cmd
         working-directory: vpn_client
         run: |
-          copy sing-box\sing-box.exe build\windows\runner\Release\sing-box.exe
-          if exist sing-box\wintun.dll copy sing-box\wintun.dll build\windows\runner\Release\wintun.dll
+          echo "Checking if files exist..."
+          if exist sing-box\sing-box.exe (
+            echo "Found sing-box.exe, copying..."
+            copy sing-box\sing-box.exe build\windows\runner\Release\sing-box.exe
+          ) else (
+            echo "ERROR: sing-box.exe not found in sing-box folder"
+            dir sing-box
+            exit 1
+          )
+          if exist sing-box\wintun.dll (
+            echo "Found wintun.dll, copying..."
+            copy sing-box\wintun.dll build\windows\runner\Release\wintun.dll
+          ) else (
+            echo "WARNING: wintun.dll not found in sing-box folder"
+          )
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.7] - 2025-06-10
+
+### Fixed
+- **CI/CD File Detection**: Enhanced GitHub Actions workflows with better error checking and debugging
+- **Download Verification**: Added file size verification and existence checks before copying
+- **Error Handling**: Improved error messages and debugging output for CI/CD failures
+- **Path Resolution**: Fixed file path issues in Windows build commands
+
+### Improved
+- **Build Reliability**: Enhanced workflow stability with detailed logging and error detection
+- **Debugging Output**: Added comprehensive logging for troubleshooting CI/CD issues
+- **Error Recovery**: Better error handling and informative failure messages
+
 ## [1.2.6] - 2025-06-10
 
 ### Fixed
