@@ -22,6 +22,24 @@ jobs:
       run: |
         cd vpn_client
         flutter pub get
+
+    - name: Download sing-box and Wintun
+      shell: bash
+      run: |
+        # Download sing-box
+        VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep '"tag_name":' | cut -d '"' -f4)
+        FILE="sing-box-${VERSION#v}-windows-amd64.exe"
+        URL="https://github.com/SagerNet/sing-box/releases/download/${VERSION}/${FILE}"
+        mkdir -p vpn_client/sing-box
+        echo "Downloading sing-box $URL..."
+        curl -L "$URL" -o "vpn_client/sing-box/sing-box.exe"
+        
+        # Download Wintun
+        echo "Downloading Wintun DLL..."
+        curl -L "https://www.wintun.net/builds/wintun-0.14.1.zip" -o wintun.zip
+        unzip -q wintun.zip
+        cp wintun/bin/amd64/wintun.dll vpn_client/sing-box/wintun.dll
+        rm -rf wintun.zip wintun
     
     - name: Run tests
       run: |
@@ -32,6 +50,13 @@ jobs:
       run: |
         cd vpn_client
         flutter build windows --release
+        
+    - name: Copy dependencies to release folder
+      shell: cmd
+      run: |
+        cd vpn_client
+        copy sing-box\sing-box.exe build\windows\runner\Release\sing-box.exe
+        copy sing-box\wintun.dll build\windows\runner\Release\wintun.dll
     
     - name: Create release archive
       run: |
