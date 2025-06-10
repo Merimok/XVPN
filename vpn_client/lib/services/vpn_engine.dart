@@ -54,7 +54,8 @@ class VpnEngine {
   }
 
   Future<String> ping(String address) async {
-    final res = await Process.run('ping', ['-n', '1', address]);
+    final args = Platform.isWindows ? ['-n', '1', address] : ['-c', '1', address];
+    final res = await Process.run('ping', args);
     if (res.stdout is List<int>) {
       return utf8.decode(res.stdout);
     }
