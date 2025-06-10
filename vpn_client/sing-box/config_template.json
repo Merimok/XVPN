@@ -20,14 +20,20 @@
       "server": "{{address}}",
       "server_port": {{port}},
       "uuid": "{{id}}",
-      "security": "reality",
-      "reality_opts": {
-        "public_key": "{{pbk}}",
-        "short_id": "{{sid}}",
+      "packet_encoding": "xudp",
+      "tls": {
+        "enabled": true,
         "server_name": "{{sni}}",
-        "spider_x": "/"
-      },
-      "fingerprint": "{{fp}}"
+        "utls": {
+          "enabled": true,
+          "fingerprint": "{{fp}}"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "{{pbk}}",
+          "short_id": "{{sid}}"
+        }
+      }
     }
   ],
   "route": {

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
@@ -139,7 +138,6 @@ class _MyAppState extends State<MyApp> {
       });
       return;
     }
-
     if (!await File(wintunPath).exists()) {
       setState(() {
         status = 'Ошибка';
@@ -148,12 +146,9 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    // try a dry-run to detect missing permissions or TUN support
     try {
       final test = await Process.run(exePath, ['--test']);
-      final err = (test.stderr is List<int>)
-          ? utf8.decode(test.stderr)
-          : test.stderr.toString();
+      final err = (test.stderr is List<int>) ? utf8.decode(test.stderr) : test.stderr.toString();
       if (test.exitCode != 0) {
         setState(() {
           status = 'Ошибка';
@@ -161,13 +156,11 @@ class _MyAppState extends State<MyApp> {
         });
         if (err.toLowerCase().contains('access')) {
           setState(() {
-            logOutput +=
-                '\nПожалуйста, запустите от имени администратора';
+            logOutput += '\nПожалуйста, запустите от имени администратора';
           });
         } else if (err.toLowerCase().contains('tun')) {
           setState(() {
-            logOutput +=
-                '\nTUN-интерфейс не поддерживается. Возможно, не хватает прав администратора или не установлен Wintun.';
+            logOutput += '\nTUN-интерфейс не поддерживается. Возможно, не хватает прав администратора или не установлен Wintun.';
           });
         }
         return;
@@ -175,7 +168,7 @@ class _MyAppState extends State<MyApp> {
     } catch (e) {
       setState(() {
         status = 'Ошибка';
-        logOutput = 'Не удалось проверить sing-box\n$e';
+        logOutput = 'Не удалось проверить sing-box\n\$e';
       });
       return;
     }
@@ -191,8 +184,7 @@ class _MyAppState extends State<MyApp> {
         setState(() {
           logOutput += data;
           if (data.toLowerCase().contains('tun')) {
-            logOutput +=
-                '\nВозможно, требуется запустить приложение от имени администратора.';
+            logOutput += '\nВозможно, требуется запустить приложение от имени администратора.';
           }
         });
       });
@@ -203,7 +195,7 @@ class _MyAppState extends State<MyApp> {
     } catch (e) {
       setState(() {
         status = 'Ошибка';
-        logOutput += 'Не удалось подключиться\n$e';
+        logOutput += 'Не удалось подключиться\n\$e';
       });
     }
   }
@@ -346,9 +338,9 @@ class _MyAppState extends State<MyApp> {
                 ],
               ),
               const SizedBox(height: 16),
-              Text('Статус: $status'),
+              Text('Статус: \$status'),
               const SizedBox(height: 8),
-              Text('Результат ping:\n$ping'),
+              Text('Результат ping:\n\$ping'),
               const SizedBox(height: 8),
               const Align(
                 alignment: Alignment.centerLeft,
