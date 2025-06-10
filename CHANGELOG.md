@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.11] - 2025-06-10
+
+### Fixed
+- **🚨 CRITICAL: Shell Compatibility**: Complete resolution of PowerShell/bash syntax mixing in GitHub Actions workflows
+- **Parser Errors**: Eliminated all shell parser errors that were blocking CI/CD pipeline execution  
+- **File Operations**: Converted all PowerShell commands (`copy /Y`, `dir`, `if exist`) to bash equivalents (`cp -v`, `ls -la`, `if [ -d ]`)
+- **Error Handling**: Migrated PowerShell error syntax (`%ERRORLEVEL%`) to bash (`$?`) throughout workflows
+- **Archive Creation**: Enhanced release packaging with fallback support (7z → zip) for better compatibility
+
+### Improved
+- **Unified Shell Environment**: All workflow steps now use consistent bash syntax across both build_windows.yml and release.yml
+- **Cross-Platform File Operations**: Standardized Unix-style commands for reliable Windows runner execution
+- **Enhanced Logging**: Added verbose output (`-v` flag) for better debugging of file operations
+- **Robust Error Detection**: Improved conditional logic with proper bash syntax for directory/file existence checks
+
+### Technical
+- **Workflow Standardization**: Converted 8 PowerShell steps to bash across 2 workflow files
+- **Path Normalization**: Updated Windows-style paths (`build\windows\`) to Unix format (`build/windows/`)
+- **Command Migration**: Comprehensive replacement of Windows-specific commands with cross-platform alternatives
+
 ## [1.2.10] - 2025-06-10
 
 ### Fixed
