@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+    
+    - name: Install dependencies
+      run: |
+        cd vpn_client
+        flutter pub get
+    
+    - name: Run tests
+      run: |
+        cd vpn_client
+        flutter test
+    
+    - name: Build Windows release
+      run: |
+        cd vpn_client
+        flutter build windows --release
+    
+    - name: Create release archive
+      run: |
+        cd vpn_client/build/windows/runner/Release
+        7z a -tzip ../../../../XVPN-Windows-${{ github.ref_name }}.zip .
+    
+    - name: Get release info
+      id: release_info
+      run: |
+        $version = "${{ github.ref_name }}" -replace "^v", ""
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+        
+        # Extract changelog for this version
+        $changelog = ""
+        if (Test-Path "CHANGELOG.md") {
+          $content = Get-Content "CHANGELOG.md" -Raw
+          $pattern = "## \[$version\].*?(?=## \[|\z)"
+          if ($content -match $pattern) {
+            $changelog = $matches[0]
+          }
+        }
+        
+        if ([string]::IsNullOrWhiteSpace($changelog)) {
+          $changelog = "Release $version"
+        }
+        
+        # Save changelog to file
+        $changelog | Out-File -FilePath "release-notes.md" -Encoding UTF8
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: XVPN ${{ steps.release_info.outputs.version }}
+        body_path: release-notes.md
+        files: |
+          vpn_client/XVPN-Windows-${{ github.ref_name }}.zip
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

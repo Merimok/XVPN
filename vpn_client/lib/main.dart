@@ -24,9 +24,63 @@ class MyApp extends StatelessWidget {
           )..init(),
         ),
       ],
-      child: const MaterialApp(
-        title: 'VLESS VPN',
-        home: HomeScreen(),
+      child: MaterialApp(
+        title: 'XVPN',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF6366F1),
+            brightness: Brightness.light,
+          ),
+          appBarTheme: const AppBarTheme(
+            elevation: 0,
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+          ),
+          cardTheme: CardTheme(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ),
+        darkTheme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF6366F1),
+            brightness: Brightness.dark,
+          ),
+          appBarTheme: const AppBarTheme(
+            elevation: 0,
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+          ),
+          cardTheme: CardTheme(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ),
+        themeMode: ThemeMode.system,
+        home: const HomeScreen(),
       ),
     );
   }
