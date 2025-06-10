@@ -32,4 +32,4 @@ void main() {
     final list = jsonDecode(await file.readAsString()) as List;
     expect(list.length, servers.length);
   });
-});
+}

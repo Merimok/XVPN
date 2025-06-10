@@ -23,18 +23,27 @@ class FakeVpnEngine extends VpnEngine {
 }
 
 class FakeProcess implements Process {
+  final StreamController<List<int>> _stderrController = StreamController<List<int>>();
+  final StreamController<List<int>> _stdoutController = StreamController<List<int>>();
+  final StreamController<List<int>> _stdinController = StreamController<List<int>>();
+  
   @override
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) => true;
+  
   @override
   int get pid => 1;
+  
   @override
-  Stream<List<int>> get stderr => const Stream.empty();
+  Stream<List<int>> get stderr => _stderrController.stream;
+  
   @override
-  Stream<List<int>> get stdout => const Stream.empty();
+  Stream<List<int>> get stdout => _stdoutController.stream;
+  
   @override
   Future<int> get exitCode async => 0;
+  
   @override
-  IOSink get stdin => IOSink(StreamController<List<int>>().sink);
+  IOSink get stdin => IOSink(_stdinController.sink);
 }
 
 void main() {

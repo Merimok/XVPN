@@ -373,15 +373,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     required ColorScheme colorScheme,
   }) {
     return ActionChip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
+      avatar: Icon(
+        icon, 
+        size: 18,
+        color: onPressed != null 
+            ? colorScheme.onPrimaryContainer
+            : colorScheme.onSurfaceVariant,
+      ),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: onPressed != null 
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onSurfaceVariant,
+        ),
+      ),
       onPressed: onPressed,
       backgroundColor: onPressed != null 
           ? colorScheme.primaryContainer
           : colorScheme.surfaceVariant,
-      foregroundColor: onPressed != null 
-          ? colorScheme.onPrimaryContainer
-          : colorScheme.onSurfaceVariant,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
