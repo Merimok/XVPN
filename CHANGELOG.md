@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.5] - 2025-06-10
+
+### Fixed
+- **VpnProvider Compilation Error**: Fixed undefined `processRunning` variable that caused build failures
+- **Connection State Management**: Added proper `_isConnected` boolean flag for tracking VPN connection status
+- **Process State Tracking**: Enhanced connection state management with correct variable declarations
+
+### Improved
+- **State Management**: Added `isConnected` getter for cleaner access to connection status
+- **Error Handling**: Improved disconnect method to properly reset connection state
+- **Code Reliability**: Eliminated undefined identifier errors in VpnProvider
+
 ## [1.2.4] - 2025-06-10
 
 ### Fixed
