@@ -103,7 +103,7 @@ class VpnProvider extends ChangeNotifier {
   Future<void> addServer(Server server) async {
     _lastOperationResult = null;
     
-    // Проверяем базовые параметры (UUID может быть любым непустым строковым идентификатором)
+    // Проверяем базовые параметры
     if (server.id.isEmpty ||
         server.address.isEmpty ||
         server.port <= 0) {
@@ -112,9 +112,11 @@ class VpnProvider extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    if (servers.any((s) => s.id == server.id)) {
-      _lastOperationResult = 'error:Сервер с таким ID уже существует';
-      logOutput += 'Сервер с таким ID уже существует\n';
+    
+    // Проверяем дублирование по комбинации адрес:порт (более практично)
+    if (servers.any((s) => s.address == server.address && s.port == server.port)) {
+      _lastOperationResult = 'error:Сервер ${server.address}:${server.port} уже существует';
+      logOutput += 'Сервер ${server.address}:${server.port} уже существует\n';
       notifyListeners();
       return;
     }
@@ -297,10 +299,32 @@ class VpnProvider extends ChangeNotifier {
 
   Future<void> measurePing() async {
     if (selected == null) return;
+    
+    ping = 'Измерение...';
+    notifyListeners();
+    
     try {
-      ping = await engine.ping(selected!.address);
+      final result = await engine.ping(selected!.address);
+      // Парсим время из разных форматов пинга
+      final timeRegexRu = RegExp(r'время[<>=]\s*(\d+)\s*мс');
+      final timeRegexEn = RegExp(r'time[<>=]\s*(\d+(?:\.\d+)?)\s*ms');
+      final timeRegexMs = RegExp(r'(\d+(?:\.\d+)?)\s*ms');
+      
+      final matchRu = timeRegexRu.firstMatch(result);
+      final matchEn = timeRegexEn.firstMatch(result);
+      final matchMs = timeRegexMs.firstMatch(result);
+      
+      if (matchRu != null) {
+        ping = '${matchRu.group(1)}ms';
+      } else if (matchEn != null) {
+        ping = '${matchEn.group(1)}ms';
+      } else if (matchMs != null) {
+        ping = '${matchMs.group(1)}ms';
+      } else {
+        ping = 'N/A';
+      }
     } catch (e) {
-      ping = 'Ошибка ping: $e';
+      ping = 'Ошибка';
     }
     notifyListeners();
   }

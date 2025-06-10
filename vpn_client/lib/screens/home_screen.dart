@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../models/server.dart';
 import '../state/vpn_provider.dart';
-import '../widgets/custom_widgets.dart';
+import '../widgets/mullvad_widgets.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,28 +16,47 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _pulseController;
+  late AnimationController _slideController;
   late Animation<double> _pulseAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+    
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
+    )..repeat(reverse: true);
+    
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
     );
+    
     _pulseAnimation = Tween<double>(
-      begin: 1.0,
+      begin: 0.9,
       end: 1.1,
     ).animate(CurvedAnimation(
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    _pulseController.repeat(reverse: true);
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.elasticOut,
+    ));
+    
+    _slideController.forward();
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _slideController.dispose();
     super.dispose();
   }
 
@@ -48,541 +67,408 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colorScheme.primary, colorScheme.secondary],
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          // Mullvad-style App Bar
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: true,
+            pinned: true,
+            backgroundColor: colorScheme.surface,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              titlePadding: const EdgeInsets.only(bottom: 16),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [colorScheme.primary, colorScheme.secondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.shield_outlined,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'XVPN',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
                 ),
-                borderRadius: BorderRadius.circular(8),
+                icon: Icon(
+                  Icons.settings_outlined,
+                  color: colorScheme.onSurface,
+                ),
+                tooltip: 'Настройки',
               ),
-              child: Icon(
-                Icons.shield,
-                color: colorScheme.onPrimary,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'XVPN',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                color: colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            ),
-            icon: const Icon(Icons.settings),
-            tooltip: 'Настройки',
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colorScheme.primary.withOpacity(0.1),
-              colorScheme.surface,
             ],
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                // Connection Status Card
-                _buildConnectionStatusCard(vpn, colorScheme),
-                const SizedBox(height: 12),
+          
+          // Main Content
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Connection Status Hero
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: _buildConnectionHero(vpn, colorScheme),
+                ),
                 
-                // Server Selection Card
-                _buildServerSelectionCard(vpn, colorScheme),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
                 
-                // Action Buttons
-                _buildActionButtons(vpn, colorScheme),
-                const SizedBox(height: 12),
+                // Server Selection
+                _buildServerSelection(vpn, colorScheme),
                 
-                // Statistics Cards Row
-                _buildStatisticsRow(vpn, colorScheme),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
                 
-                // Logs Card
-                _buildLogsCard(vpn, colorScheme),
-              ],
+                // Quick Actions
+                _buildQuickActions(vpn, colorScheme),
+                
+                const SizedBox(height: 20),
+                
+                // Status Cards
+                _buildStatusCards(vpn, colorScheme),
+                
+                const SizedBox(height: 20),
+                
+                // Logs Section (collapsed by default)
+                _buildLogsSection(vpn, colorScheme),
+              ]),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildConnectionStatusCard(VpnProvider vpn, ColorScheme colorScheme) {
+  Widget _buildConnectionHero(VpnProvider vpn, ColorScheme colorScheme) {
     final isConnected = vpn.status == 'Подключено';
     final isConnecting = vpn.status == 'Подключение...';
     
-    return Card(
-      elevation: 6,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            colors: isConnected
-                ? [Colors.green.shade400, Colors.green.shade600]
-                : isConnecting
-                    ? [Colors.orange.shade400, Colors.orange.shade600]
-                    : [Colors.grey.shade400, Colors.grey.shade600],
-          ),
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isConnected
+              ? [const Color(0xFF10B981), const Color(0xFF059669)]
+              : isConnecting
+                  ? [const Color(0xFFF59E0B), const Color(0xFFD97706)]
+                  : [colorScheme.surfaceVariant, colorScheme.outline],
         ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            VpnToggleSwitch(
-              isConnected: isConnected,
-              isConnecting: isConnecting,
-              onToggle: isConnected ? vpn.disconnect : vpn.connect,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: (isConnected ? const Color(0xFF10B981) : colorScheme.primary).withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Status Icon with pulse animation
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: isConnecting ? _pulseAnimation.value : 1.0,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.4),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    isConnected
+                        ? Icons.shield
+                        : isConnecting
+                            ? Icons.sync
+                            : Icons.shield_outlined,
+                    size: 40,
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            },
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Status Text
+          Text(
+            vpn.status,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
             ),
-            const SizedBox(height: 12),
+          ),
+          
+          if (isConnected && vpn.selected != null) ...[
+            const SizedBox(height: 8),
             Text(
-              vpn.status,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              vpn.selected!.name,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withOpacity(0.9),
+                fontWeight: FontWeight.w500,
               ),
             ),
-            if (isConnected && vpn.selected != null) ...[
-              const SizedBox(height: 6),
+          ],
+          
+          const SizedBox(height: 24),
+          
+          // Main Connect Button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: vpn.status == 'Подключено'
+                  ? vpn.disconnect
+                  : (vpn.filesReady && vpn.selected != null && vpn.status != 'Подключение...')
+                      ? vpn.connect
+                      : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: isConnected 
+                    ? const Color(0xFFDC2626) 
+                    : colorScheme.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    vpn.status == 'Подключено' 
+                        ? Icons.stop_circle_outlined 
+                        : Icons.play_circle_outlined,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    vpn.status == 'Подключено' ? 'Отключиться' : 'Подключиться',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServerSelection(VpnProvider vpn, ColorScheme colorScheme) {
+    return MullvadCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.dns_outlined,
+                color: colorScheme.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
               Text(
-                'Подключен к ${vpn.selected!.name}',
+                'Сервер',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildServerSelectionCard(VpnProvider vpn, ColorScheme colorScheme) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.dns,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Выбор сервера',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: colorScheme.outline),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<Server>(
-                  isExpanded: true,
-                  value: vpn.selected,
-                  icon: Icon(Icons.expand_more, color: colorScheme.primary),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  items: vpn.servers
-                      .map((s) => DropdownMenuItem(
-                            value: s,
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: s.isBuiltIn 
-                                        ? Colors.green 
-                                        : colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        s.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${s.address}:${s.port}',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: colorScheme.onSurface.withOpacity(0.6),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (s.isBuiltIn)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                    child: Text(
-                                      'ВСТРОЕННЫЙ',
-                                      style: TextStyle(
-                                        fontSize: 8,
-                                        color: Colors.green.shade700,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (s) => vpn.selectServer(s),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(VpnProvider vpn, ColorScheme colorScheme) {
-    return Column(
-      children: [
-        // Main Connection Button
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: ElevatedButton(
-            onPressed: vpn.status == 'Подключено' 
-                ? vpn.disconnect
-                : (vpn.filesReady && vpn.selected != null && vpn.status != 'Подключение...')
-                    ? vpn.connect 
-                    : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: vpn.status == 'Подключено' 
-                  ? Colors.red.shade500
-                  : colorScheme.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  vpn.status == 'Подключено' 
-                      ? Icons.stop 
-                      : Icons.play_arrow,
-                  size: 20,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  vpn.status == 'Подключено' ? 'Отключиться' : 'Подключиться',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
           ),
-        ),
-        const SizedBox(height: 12),
-
-        // Warning message
-        if (!vpn.filesReady) ...[
+          const SizedBox(height: 16),
+          
+          // Server Dropdown
           Container(
-            padding: const EdgeInsets.all(12),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
-              color: colorScheme.errorContainer,
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colorScheme.outline),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.warning,
-                  color: colorScheme.onErrorContainer,
-                  size: 16,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Не найден файл sing-box.exe. Подключение невозможно.',
-                    style: TextStyle(
-                      color: colorScheme.onErrorContainer,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<Server>(
+                isExpanded: true,
+                value: vpn.selected,
+                icon: Icon(Icons.expand_more, color: colorScheme.primary),
+                items: vpn.servers.map((server) => DropdownMenuItem(
+                  value: server,
+                  child: ServerTile(server: server),
+                )).toList(),
+                onChanged: (server) => vpn.selectServer(server),
+              ),
             ),
           ),
-          const SizedBox(height: 12),
         ],
-        
-        // Secondary Action Buttons
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildActionChip(
-              icon: Icons.add,
-              label: 'Добавить',
-              onPressed: () => _showAddServerDialog(context, vpn),
-              colorScheme: colorScheme,
-            ),
-            _buildActionChip(
-              icon: Icons.delete,
-              label: 'Удалить',
-              onPressed: vpn.selected != null && !vpn.selected!.isBuiltIn 
-                  ? () => _showDeleteConfirmation(context, vpn)
-                  : null,
-              colorScheme: colorScheme,
-            ),
-            _buildActionChip(
-              icon: Icons.network_ping,
-              label: 'Пинг',
-              onPressed: vpn.selected != null ? vpn.measurePing : null,
-              colorScheme: colorScheme,
-            ),
-            _buildActionChip(
-              icon: Icons.medical_services,
-              label: 'Диагностика',
-              onPressed: () => vpn.runDiagnostics(),
-              colorScheme: colorScheme,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionChip({
-    required IconData icon,
-    required String label,
-    VoidCallback? onPressed,
-    required ColorScheme colorScheme,
-  }) {
-    return ActionChip(
-      avatar: Icon(
-        icon, 
-        size: 16,
-        color: onPressed != null 
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurfaceVariant,
-      ),
-      label: Text(
-        label,
-        style: TextStyle(
-          color: onPressed != null 
-              ? colorScheme.onPrimaryContainer
-              : colorScheme.onSurfaceVariant,
-          fontSize: 12,
-        ),
-      ),
-      onPressed: onPressed,
-      backgroundColor: onPressed != null 
-          ? colorScheme.primaryContainer
-          : colorScheme.surfaceVariant,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
       ),
     );
   }
 
-  Widget _buildStatisticsRow(VpnProvider vpn, ColorScheme colorScheme) {
+  Widget _buildQuickActions(VpnProvider vpn, ColorScheme colorScheme) {
     return Row(
       children: [
         Expanded(
-          child: StatisticCard(
-            title: 'Статус',
-            value: vpn.status,
-            icon: Icons.speed,
-            gradientColors: [
-              colorScheme.primaryContainer,
-              colorScheme.primary,
-            ],
+          child: MullvadActionButton(
+            icon: Icons.add_circle_outlined,
+            label: 'Добавить',
+            onPressed: () => _showAddServerDialog(context, vpn),
+            colorScheme: colorScheme,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: StatisticCard(
-            title: 'Пинг',
-            value: vpn.ping.isNotEmpty ? _extractPingTime(vpn.ping) : 'N/A',
-            icon: Icons.timer,
-            gradientColors: [
-              colorScheme.secondaryContainer,
-              colorScheme.secondary,
-            ],
+          child: MullvadActionButton(
+            icon: Icons.delete_outline,
+            label: 'Удалить',
+            onPressed: vpn.selected != null && !vpn.selected!.isBuiltIn
+                ? () => _showDeleteConfirmation(context, vpn)
+                : null,
+            colorScheme: colorScheme,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: MullvadActionButton(
+            icon: Icons.network_ping_outlined,
+            label: 'Пинг',
+            onPressed: vpn.selected != null ? vpn.measurePing : null,
+            colorScheme: colorScheme,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: MullvadActionButton(
+            icon: Icons.medical_services_outlined,
+            label: 'Тест',
+            onPressed: () => vpn.runDiagnostics(),
+            colorScheme: colorScheme,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required ColorScheme colorScheme,
-  }) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(icon, color: colorScheme.primary, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.onSurface.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+  Widget _buildStatusCards(VpnProvider vpn, ColorScheme colorScheme) {
+    return Row(
+      children: [
+        Expanded(
+          child: StatusCard(
+            title: 'Пинг',
+            value: vpn.ping.isEmpty ? 'N/A' : vpn.ping,
+            icon: Icons.speed_outlined,
+            color: colorScheme.primary,
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: StatusCard(
+            title: 'Серверов',
+            value: '${vpn.servers.length}',
+            icon: Icons.dns_outlined,
+            color: colorScheme.secondary,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: StatusCard(
+            title: 'Статус',
+            value: vpn.filesReady ? 'Готов' : 'Не готов',
+            icon: Icons.check_circle_outlined,
+            color: vpn.filesReady ? const Color(0xFF10B981) : const Color(0xFFDC2626),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildLogsCard(VpnProvider vpn, ColorScheme colorScheme) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.terminal, color: colorScheme.primary, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Логи подключения',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-                if (vpn.logOutput.isNotEmpty)
-                  IconButton.filledTonal(
-                    onPressed: () => _copyLogs(context, vpn.logOutput),
-                    icon: const Icon(Icons.copy, size: 16),
-                    tooltip: 'Копировать логи',
-                    iconSize: 16,
-                  ),
-              ],
+  Widget _buildLogsSection(VpnProvider vpn, ColorScheme colorScheme) {
+    return MullvadCard(
+      child: ExpansionTile(
+        leading: Icon(Icons.terminal, color: colorScheme.primary),
+        title: const Text(
+          'Логи подключения',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        trailing: vpn.logOutput.isNotEmpty
+            ? IconButton(
+                onPressed: () => _copyLogs(context, vpn.logOutput),
+                icon: const Icon(Icons.copy_outlined, size: 20),
+                tooltip: 'Копировать',
+              )
+            : null,
+        children: [
+          Container(
+            width: double.infinity,
+            height: 200,
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colorScheme.outline.withOpacity(0.5)),
             ),
-            const SizedBox(height: 12),
-            Container(
-              height: 150,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
-              ),
-              padding: const EdgeInsets.all(8),
-              child: SingleChildScrollView(
-                child: SelectableText(
-                  vpn.logOutput.isEmpty ? 'Логи появятся здесь...' : vpn.logOutput,
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 11,
-                    color: vpn.logOutput.isEmpty 
-                        ? colorScheme.onSurface.withOpacity(0.5)
-                        : colorScheme.onSurface,
-                  ),
+            child: SingleChildScrollView(
+              child: SelectableText(
+                vpn.logOutput.isEmpty ? 'Логи появятся здесь...' : vpn.logOutput,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  color: vpn.logOutput.isEmpty
+                      ? colorScheme.onSurface.withOpacity(0.5)
+                      : colorScheme.onSurface,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  void _copyLogs(BuildContext context, String logs) {
-    Clipboard.setData(ClipboardData(text: logs));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Логи скопированы в буфер обмена'),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  String _extractPingTime(String pingOutput) {
-    final regex = RegExp(r'время[<>=]\s*(\d+)\s*мс');
-    final match = regex.firstMatch(pingOutput);
-    return match != null ? '${match.group(1)}ms' : 'N/A';
-  }
-
+  // Dialog methods remain the same...
   void _showAddServerDialog(BuildContext context, VpnProvider vpn) async {
     final controller = TextEditingController();
     final result = await showDialog<bool>(
@@ -600,11 +486,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'VLESS URL',
                 hintText: 'vless://...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.link),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.link),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.content_paste),
+                  tooltip: 'Вставить из буфера',
+                  onPressed: () async {
+                    try {
+                      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+                      if (clipboardData != null && clipboardData.text != null) {
+                        controller.text = clipboardData.text!;
+                      }
+                    } catch (e) {
+                      // Игнорируем ошибки доступа к буферу обмена
+                    }
+                  },
+                ),
               ),
               maxLines: 3,
             ),
@@ -673,77 +573,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  void _showSettingsBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+  void _copyLogs(BuildContext context, String logs) {
+    Clipboard.setData(ClipboardData(text: logs));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
           children: [
-            const Text(
-              'Настройки',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('О приложении'),
-              onTap: () => _showAboutDialog(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.bug_report),
-              title: const Text('Сообщить об ошибке'),
-              onTap: () => _showReportDialog(context),
-            ),
+            Icon(Icons.check, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Логи скопированы в буфер обмена'),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showAboutDialog(BuildContext context) {
-    showAboutDialog(
-      context: context,
-      applicationName: 'XVPN',
-      applicationVersion: '1.2.0',
-      applicationIcon: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          Icons.shield,
-          color: Theme.of(context).colorScheme.onPrimary,
-        ),
-      ),
-      children: const [
-        Text('Современный VLESS VPN клиент для Windows'),
-        Text('Создан с использованием Flutter и sing-box'),
-      ],
-    );
-  }
-
-  void _showReportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Сообщить об ошибке'),
-        content: const Text(
-          'Для сообщения об ошибках и предложений:\n\n'
-          '• Создайте Issue на GitHub\n'
-          '• Приложите логи диагностики\n'
-          '• Опишите шаги воспроизведения',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Понятно'),
-          ),
-        ],
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -754,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         content: Row(
           children: [
             Icon(icon, color: Colors.white),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(message),
           ],
         ),

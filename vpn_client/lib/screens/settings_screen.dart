@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../widgets/mullvad_widgets.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,17 +21,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Настройки'),
+        title: Row(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [colorScheme.primary, colorScheme.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(
+                Icons.settings,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Настройки'),
+          ],
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         children: [
           // Раздел подключения
           _buildSectionHeader('Подключение', Icons.wifi, colorScheme),
-          Card(
+          const SizedBox(height: 8),
+          MullvadCard(
             child: Column(
               children: [
                 SwitchListTile(
@@ -38,12 +63,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: const Text('Автоматически подключаться к последнему серверу'),
                   value: _autoConnect,
                   onChanged: (value) => setState(() => _autoConnect = value),
-                  secondary: const Icon(Icons.auto_mode),
+                  secondary: Icon(Icons.auto_mode, color: colorScheme.primary),
                   dense: true,
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: colorScheme.outline.withOpacity(0.2)),
                 ListTile(
-                  leading: const Icon(Icons.timer),
+                  leading: Icon(Icons.timer, color: colorScheme.primary),
                   title: const Text('Таймаут подключения'),
                   subtitle: Text('${_connectionTimeout.round()} секунд'),
                   trailing: SizedBox(
@@ -54,6 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       max: 60,
                       divisions: 10,
                       onChanged: (value) => setState(() => _connectionTimeout = value),
+                      activeColor: colorScheme.primary,
                     ),
                   ),
                   dense: true,
@@ -62,11 +88,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           
           // Раздел интерфейса
           _buildSectionHeader('Интерфейс', Icons.palette, colorScheme),
-          Card(
+          const SizedBox(height: 8),
+          MullvadCard(
             child: Column(
               children: [
                 SwitchListTile(
@@ -74,52 +101,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: const Text('Использовать темное оформление'),
                   value: _darkMode,
                   onChanged: (value) => setState(() => _darkMode = value),
-                  secondary: const Icon(Icons.dark_mode),
+                  secondary: Icon(Icons.dark_mode, color: colorScheme.primary),
                   dense: true,
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: colorScheme.outline.withOpacity(0.2)),
                 ListTile(
-                  leading: const Icon(Icons.language),
+                  leading: Icon(Icons.language, color: colorScheme.primary),
                   title: const Text('Язык'),
                   subtitle: Text(_getLanguageName(_selectedLanguage)),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.outline),
                   onTap: () => _showLanguageDialog(),
                   dense: true,
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: colorScheme.outline.withOpacity(0.2)),
                 SwitchListTile(
                   title: const Text('Уведомления'),
                   subtitle: const Text('Показывать уведомления о статусе'),
                   value: _showNotifications,
                   onChanged: (value) => setState(() => _showNotifications = value),
-                  secondary: const Icon(Icons.notifications),
+                  secondary: Icon(Icons.notifications, color: colorScheme.primary),
                   dense: true,
                 ),
               ],
             ),
           ),
           
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           
           // Раздел безопасности
           _buildSectionHeader('Безопасность', Icons.security, colorScheme),
-          Card(
+          const SizedBox(height: 8),
+          MullvadCard(
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.vpn_key),
+                  leading: Icon(Icons.vpn_key, color: colorScheme.primary),
                   title: const Text('Изменить пароль'),
                   subtitle: const Text('Установить пароль для приложения'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.outline),
                   onTap: () => _showChangePasswordDialog(),
                   dense: true,
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: colorScheme.outline.withOpacity(0.2)),
                 ListTile(
-                  leading: const Icon(Icons.delete_forever),
+                  leading: Icon(Icons.delete_forever, color: colorScheme.error),
                   title: const Text('Очистить данные'),
                   subtitle: const Text('Удалить все настройки и серверы'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.outline),
                   onTap: () => _showClearDataDialog(),
                   dense: true,
                 ),
@@ -127,44 +155,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           
           // Раздел информации
           _buildSectionHeader('Информация', Icons.info, colorScheme),
-          Card(
+          const SizedBox(height: 8),
+          MullvadCard(
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.info_outline),
+                  leading: Icon(Icons.info_outline, color: colorScheme.primary),
                   title: const Text('О приложении'),
-                  subtitle: const Text('Версия 1.2.0'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  subtitle: const Text('Версия 1.2.2'),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.outline),
                   onTap: () => _showAboutDialog(),
                   dense: true,
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: colorScheme.outline.withOpacity(0.2)),
                 ListTile(
-                  leading: const Icon(Icons.bug_report),
+                  leading: Icon(Icons.bug_report, color: colorScheme.primary),
                   title: const Text('Сообщить об ошибке'),
                   subtitle: const Text('Отправить отчет разработчикам'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.outline),
                   onTap: () => _showBugReportDialog(),
                   dense: true,
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: colorScheme.outline.withOpacity(0.2)),
                 ListTile(
-                  leading: const Icon(Icons.privacy_tip),
+                  leading: Icon(Icons.privacy_tip, color: colorScheme.primary),
                   title: const Text('Политика конфиденциальности'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.outline),
                   onTap: () => _showPrivacyDialog(),
                   dense: true,
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: colorScheme.outline.withOpacity(0.2)),
                 ListTile(
-                  leading: const Icon(Icons.code),
+                  leading: Icon(Icons.code, color: colorScheme.primary),
                   title: const Text('Открытый код'),
                   subtitle: const Text('Посмотреть код на GitHub'),
-                  trailing: const Icon(Icons.open_in_new),
+                  trailing: Icon(Icons.open_in_new, size: 16, color: colorScheme.outline),
                   onTap: () => _openGitHub(),
                   dense: true,
                 ),
