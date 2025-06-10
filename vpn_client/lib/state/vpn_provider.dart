@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/server.dart';
 import '../services/server_repository.dart';
@@ -60,12 +61,14 @@ class VpnProvider extends ChangeNotifier {
       return;
     }
 
-    if (!await File(engine.singBoxPath).exists() || !await File(engine.configPath).exists()) {
+    if (!await File(engine.singBoxPath).exists()) {
       status = 'Ошибка';
-      logOutput = 'sing-box.exe или config.json не найдены';
+      logOutput = 'sing-box.exe не найден';
       notifyListeners();
       return;
     }
+
+    await engine.writeConfig(selected!, bundle: rootBundle);
 
     final test = await engine.testSingBox();
     final err = (test.stderr is List<int>) ? utf8.decode(test.stderr) : test.stderr.toString();
