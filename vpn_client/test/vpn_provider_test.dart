@@ -26,10 +26,12 @@ void main() {
     // invalid server
     await provider.addServer(Server(name: 'n', address: '', port: 0, id: '123'));
     expect(provider.servers, isEmpty);
+    expect(provider.lastOperationResult, startsWith('error:'));
     expect(provider.logOutput, contains('Неверные параметры сервера'));
 
     // valid server
     provider.logOutput = '';
+    provider.clearLastOperationResult();
     final valid = Server(
         name: 'ok',
         address: 'host',
@@ -37,6 +39,7 @@ void main() {
         id: '11111111-1111-1111-1111-111111111111');
     await provider.addServer(valid);
     expect(provider.servers.length, 1);
-    expect(provider.logOutput.isEmpty, isTrue);
+    expect(provider.lastOperationResult, 'success');
+    expect(provider.logOutput, contains('успешно добавлен'));
   });
 }
