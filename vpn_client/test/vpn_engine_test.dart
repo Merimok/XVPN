@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:vpn_client/models/server.dart';
 import 'package:vpn_client/services/vpn_engine.dart';
 
-class FakeProcess extends Process {
+class FakeProcess implements Process {
   @override
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) => true;
   @override
@@ -17,6 +18,8 @@ class FakeProcess extends Process {
   Stream<List<int>> get stdout => const Stream.empty();
   @override
   Future<int> get exitCode async => 0;
+  @override
+  IOSink get stdin => IOSink(StreamController<List<int>>().sink);
 }
 
 class FakeVpnEngine extends VpnEngine {
