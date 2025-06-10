@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,7 +22,7 @@ class FakeVpnEngine extends VpnEngine {
   String get configPath => 'config.json';
 }
 
-class FakeProcess extends Process {
+class FakeProcess implements Process {
   @override
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) => true;
   @override
@@ -32,6 +33,8 @@ class FakeProcess extends Process {
   Stream<List<int>> get stdout => const Stream.empty();
   @override
   Future<int> get exitCode async => 0;
+  @override
+  IOSink get stdin => IOSink(StreamController<List<int>>().sink);
 }
 
 void main() {
