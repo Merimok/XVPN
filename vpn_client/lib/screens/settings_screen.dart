@@ -379,7 +379,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showAboutDialog(
       context: context,
       applicationName: 'XVPN',
-      applicationVersion: '1.2.0',
+      applicationVersion: '1.2.3',
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(

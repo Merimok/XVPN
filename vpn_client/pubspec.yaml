@@ -1,6 +1,6 @@
 name: vpn_client
-description: A minimal VLESS VPN client.
-version: 1.0.0
+description: A minimal VLESS VPN client with modern Mullvad-style design.
+version: 1.2.3+3
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
