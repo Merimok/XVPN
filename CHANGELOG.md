@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.8] - 2025-06-10
+
+### Fixed
+- **CI/CD Directory Creation**: Fixed "The system cannot find the path specified" errors by ensuring Release directory exists before copying files
+- **Windows Build Path Issues**: Enhanced directory structure creation with step-by-step verification
+- **File Copy Operations**: Improved robustness of copying sing-box.exe and wintun.dll to Release folder
+- **Build Process Reliability**: Added comprehensive diagnostic output and error handling
+
+### Improved
+- **CI/CD Debugging**: Added detailed logging and verification steps in GitHub Actions workflows
+- **Error Diagnostics**: Enhanced error messages with directory structure validation
+- **Build Automation**: More robust file copy operations with forced directory creation
+- **Workflow Stability**: Improved reliability of both build_windows.yml and release.yml workflows
+
+### Technical
+- **Directory Validation**: Added checks for build\windows\runner\Release\ directory existence
+- **Copy Command Enhancement**: Using copy /Y for overwrite protection and better error handling
+- **Build Structure**: Ensuring complete directory tree creation before file operations
+
 ## [1.2.7] - 2025-06-10
 
 ### Fixed

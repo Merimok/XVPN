@@ -61,24 +61,108 @@ jobs:
         run: flutter build windows --release
         working-directory: vpn_client
 
+      - name: Verify build output and create directories
+        shell: cmd
+        working-directory: vpn_client
+        run: |
+          echo "=== DIAGNOSTIC INFO ==="
+          echo "Current directory:"
+          cd
+          echo "Listing current directory:"
+          dir
+          echo "Checking if build directory exists:"
+          if exist build\ (
+            echo "build\ directory exists"
+            dir build
+            if exist build\windows\ (
+              echo "build\windows\ directory exists"
+              dir build\windows
+              if exist build\windows\runner\ (
+                echo "build\windows\runner\ directory exists"
+                dir build\windows\runner
+              ) else (
+                echo "build\windows\runner\ directory DOES NOT exist"
+              )
+            ) else (
+              echo "build\windows\ directory DOES NOT exist"
+            )
+          ) else (
+            echo "build\ directory DOES NOT exist"
+          )
+          echo "Checking sing-box directory:"
+          if exist sing-box\ (
+            echo "sing-box\ directory exists"
+            dir sing-box
+          ) else (
+            echo "sing-box\ directory DOES NOT exist"
+            dir
+          )
+
       - name: Copy dependencies to release folder
         shell: cmd
         working-directory: vpn_client
         run: |
-          echo "Checking if files exist..."
-          if exist sing-box\sing-box.exe (
-            echo "Found sing-box.exe, copying..."
-            copy sing-box\sing-box.exe build\windows\runner\Release\sing-box.exe
+          echo "=== COPYING DEPENDENCIES ==="
+          echo "Creating full directory structure..."
+          if not exist build\ mkdir build
+          if not exist build\windows\ mkdir build\windows
+          if not exist build\windows\runner\ mkdir build\windows\runner
+          if not exist build\windows\runner\Release\ mkdir build\windows\runner\Release
+          
+          echo "Verifying Release directory was created:"
+          if exist build\windows\runner\Release\ (
+            echo "SUCCESS: Release directory exists"
+            dir build\windows\runner\Release
           ) else (
-            echo "ERROR: sing-box.exe not found in sing-box folder"
-            dir sing-box
+            echo "ERROR: Failed to create Release directory"
             exit 1
           )
-          if exist sing-box\wintun.dll (
-            echo "Found wintun.dll, copying..."
-            copy sing-box\wintun.dll build\windows\runner\Release\wintun.dll
+          
+          echo "Copying sing-box.exe..."
+          if exist sing-box\sing-box.exe (
+            echo "Source file exists, copying..."
+            copy /Y sing-box\sing-box.exe build\windows\runner\Release\sing-box.exe
+            if %ERRORLEVEL% EQU 0 (
+              echo "SUCCESS: Copied sing-box.exe"
+              dir build\windows\runner\Release\sing-box.exe
+            ) else (
+              echo "ERROR: Failed to copy sing-box.exe, error level: %ERRORLEVEL%"
+              exit 1
+            )
           ) else (
-            echo "WARNING: wintun.dll not found in sing-box folder"
+            echo "ERROR: sing-box.exe not found"
+            echo "Contents of sing-box directory:"
+            if exist sing-box\ (
+              dir sing-box
+            ) else (
+              echo "sing-box directory does not exist"
+            )
+            exit 1
+          )
+          
+          echo "Copying wintun.dll..."
+          if exist sing-box\wintun.dll (
+            echo "Source file exists, copying..."
+            copy /Y sing-box\wintun.dll build\windows\runner\Release\wintun.dll
+            if %ERRORLEVEL% EQU 0 (
+              echo "SUCCESS: Copied wintun.dll"
+              dir build\windows\runner\Release\wintun.dll
+            ) else (
+              echo "ERROR: Failed to copy wintun.dll, error level: %ERRORLEVEL%"
+              exit 1
+            )
+          ) else (
+            echo "WARNING: wintun.dll not found"
+            echo "Contents of sing-box directory:"
+            dir sing-box
+          )
+          
+          echo "Final verification - Release directory contents:"
+          if exist build\windows\runner\Release\ (
+            dir build\windows\runner\Release
+          ) else (
+            echo "ERROR: Release directory does not exist after copy operations!"
+            exit 1
           )
 
       - name: Upload build artifact
