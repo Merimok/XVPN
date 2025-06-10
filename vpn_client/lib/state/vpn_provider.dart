@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -213,13 +214,23 @@ class VpnProvider extends ChangeNotifier {
       // Проверяем статус процесса без блокировки
       bool processRunning = true;
       try {
-        // Проверяем завершился ли процесс без ожидания
-        final exitCode = proc.exitCode;
-        // Если exitCode доступен немедленно, процесс уже завершился
-        if (exitCode.isCompleted) {
-          final code = await exitCode;
+        // Проверяем завершился ли процесс с помощью timeout
+        final exitCodeFuture = proc.exitCode;
+        bool processFinished = false;
+        int? exitCode;
+        
+        // Пытаемся получить код завершения с коротким timeout
+        try {
+          exitCode = await exitCodeFuture.timeout(Duration(milliseconds: 50));
+          processFinished = true;
+        } on TimeoutException {
+          // Процесс еще работает - это нормально
+          processFinished = false;
+        }
+        
+        if (processFinished) {
           status = 'Ошибка';
-          logOutput += '\nsing-box завершился сразу с кодом: $code\n';
+          logOutput += '\nsing-box завершился сразу с кодом: $exitCode\n';
           processRunning = false;
         } else {
           // Процесс еще работает
@@ -227,7 +238,7 @@ class VpnProvider extends ChangeNotifier {
           logOutput += '\nПроцесс sing-box запущен успешно (PID: ${proc.pid})\n';
           
           // Асинхронно следим за завершением процесса
-          exitCode.then((code) {
+          exitCodeFuture.then((code) {
             if (status == 'Подключено') {
               status = 'Ошибка';
               logOutput += '\nsing-box завершился с кодом: $code\n';
