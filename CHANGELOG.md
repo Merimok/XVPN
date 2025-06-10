@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2025-06-10
+
+### Added
+- **New Mullvad-Style Design**: Complete redesign with modern Material 3 theme
+  - Custom Mullvad-inspired color scheme with deep purple gradients (#5E4EBD, #7B68EE, #44337A)
+  - Animated hero sections with pulse and slide effects for connection states
+  - Modern card designs with subtle borders and elevated shadows
+  - Custom component library (`MullvadCard`, `MullvadActionButton`, `StatusCard`, `ServerTile`)
+  - Animated connection status icons with rotation and pulse animations
+- **Enhanced Settings Screen**: Updated settings to match new Mullvad design language
+  - Modern section headers with gradient icons
+  - Consistent spacing and typography throughout
+  - Improved visual hierarchy and interaction feedback
+
+### Changed
+- **Home Screen**: Replaced original design with Mullvad-inspired interface
+  - Hero sections with modern gradients and animations
+  - Improved layout and spacing for better visual balance
+  - Enhanced server selection with modern dropdown design
+  - Better visual feedback for all user interactions
+- **Application Theme**: Updated to modern Material 3 with custom color scheme
+  - Professional purple color palette inspired by Mullvad VPN
+  - Consistent typography using Inter font family
+  - Improved dark theme support with proper contrast ratios
+
+### Improved
+- **Design Consistency**: Unified design language across all screens
+- **User Experience**: Better visual feedback and intuitive interactions
+- **Accessibility**: Improved contrast ratios and touch target sizes
+- **Animation System**: Smooth transitions and state change animations
+
+### Technical
+- Created `mullvad_widgets.dart` component library for reusable UI elements
+- Maintained backward compatibility by preserving original design as `home_screen_old.dart`
+- Enhanced theme configuration with proper Material 3 color schemes
+- Improved widget organization and code structure
+
 ## [1.2.2] - 2025-06-10
 
 ### Fixed
