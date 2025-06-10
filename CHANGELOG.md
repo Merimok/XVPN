@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.9] - 2025-06-10
+
+### Fixed
+- **Flutter Windows Build**: Fixed missing vpn_client.exe generation in GitHub Actions
+- **Windows Platform**: Added proper Windows platform structure to enable builds
+- **CI/CD Flutter Integration**: Enhanced workflows with verbose Flutter build logging
+- **Build Diagnostics**: Added comprehensive Flutter build verification and error reporting
+
+### Improved
+- **Build Process**: Added Windows platform creation step in CI/CD workflows
+- **Error Detection**: Enhanced build failure diagnosis with detailed file system checks
+- **Workflow Reliability**: Improved Flutter build process with proper platform setup
+- **Debug Information**: Added verbose build output for troubleshooting CI/CD issues
+
+### Technical
+- **Windows Directory**: Created basic windows/ platform structure with CMakeLists.txt
+- **Flutter Create**: Added automatic Windows platform generation in workflows
+- **Build Verification**: Added checks for vpn_client.exe creation and file sizes
+- **Platform Detection**: Enhanced logic for Windows platform setup in CI/CD
+
 ## [1.2.8] - 2025-06-10
 
 ### Fixed

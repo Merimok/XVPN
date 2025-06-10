@@ -54,11 +54,46 @@ jobs:
         working-directory: vpn_client
 
       - name: Add Windows platform
-        run: flutter create --platforms=windows .
+        run: |
+          echo "=== ENSURING WINDOWS PLATFORM ==="
+          echo "Checking Windows platform..."
+          if [ ! -f "windows/CMakeLists.txt" ] || [ ! -d "windows/runner" ]; then
+            echo "Windows platform incomplete, creating..."
+            flutter create --platforms=windows .
+          else
+            echo "Windows platform exists, updating..."
+            flutter create --platforms=windows .
+          fi
+          echo "Windows platform ready:"
+          ls -la windows/
         working-directory: vpn_client
 
       - name: Build Flutter app (Windows)
-        run: flutter build windows --release
+        run: |
+          echo "=== BUILDING FLUTTER WINDOWS APP ==="
+          echo "Flutter version:"
+          flutter --version
+          echo "Building Windows release..."
+          flutter build windows --release --verbose
+          echo "Build completed. Checking output..."
+          if [ -d "build/windows/runner/Release" ]; then
+            echo "✓ Release directory exists"
+            ls -la build/windows/runner/Release/
+            if [ -f "build/windows/runner/Release/vpn_client.exe" ]; then
+              echo "✓ vpn_client.exe created successfully!"
+              ls -lh build/windows/runner/Release/vpn_client.exe
+            else
+              echo "✗ ERROR: vpn_client.exe not found!"
+              echo "Contents of Release directory:"
+              find build/windows/runner/Release/ -type f || echo "Directory empty or missing"
+              exit 1
+            fi
+          else
+            echo "✗ ERROR: Release directory not created!"
+            echo "Build directory contents:"
+            find build/ -type f || echo "Build directory empty or missing"
+            exit 1
+          fi
         working-directory: vpn_client
 
       - name: Verify build output and create directories
