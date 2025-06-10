@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.6] - 2025-06-10
+
+### Fixed
+- **CI/CD Pipeline**: Fixed GitHub Actions build failures due to missing dependencies
+- **Automatic Downloads**: Added automatic downloading of sing-box.exe and wintun.dll during build process
+- **File Copying**: Fixed incorrect paths in Windows build commands that caused "path not found" errors
+- **Release Automation**: Enhanced release workflow to create complete, ready-to-use ZIP packages
+
+### Improved
+- **Build Process**: Fully automated dependency management - no manual file placement required
+- **Release Quality**: GitHub Releases now contain all necessary files for end-user deployment
+- **CI/CD Reliability**: Robust error handling and proper file structure in build artifacts
+- **Documentation**: Added comprehensive CI/CD guide with troubleshooting instructions
+
+### Technical
+- **Workflow Updates**: Updated build_windows.yml and release.yml with proper dependency management
+- **File Structure**: Automated copying of sing-box.exe and wintun.dll to release folders
+- **Error Prevention**: Fixed "The system cannot find the path specified" build errors
+
 ## [1.2.5] - 2025-06-10
 
 ### Fixed
