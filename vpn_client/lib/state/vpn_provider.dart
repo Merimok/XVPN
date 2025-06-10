@@ -85,7 +85,7 @@ class VpnProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       status = 'Ошибка';
-      logOutput = 'Не удалось подключиться\n\$e';
+      logOutput = 'Не удалось подключиться\n$e';
       notifyListeners();
     }
   }
