@@ -89,7 +89,8 @@ class VpnEngine {
   }
 
   Future<ProcessResult> testSingBox() async {
-    return await Process.run(singBoxPath, ['--test']);
+    // Проверяем версию sing-box как простейший способ убедиться, что файл работает
+    return await Process.run(singBoxPath, ['version']);
   }
 
   Future<Process> startSingBox() async {

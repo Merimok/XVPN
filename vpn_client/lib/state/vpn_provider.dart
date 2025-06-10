@@ -168,6 +168,23 @@ class VpnProvider extends ChangeNotifier {
       return;
     }
 
+    // Проверяем сгенерированную конфигурацию
+    try {
+      final checkResult = await Process.run(engine.singBoxPath, ['check', '-c', engine.configPath]);
+      if (checkResult.exitCode != 0) {
+        status = 'Ошибка';
+        final checkErr = (checkResult.stderr is List<int>) ? utf8.decode(checkResult.stderr) : checkResult.stderr.toString();
+        logOutput = 'Ошибка в конфигурации: ${checkErr.isNotEmpty ? checkErr : 'Неизвестная ошибка'}';
+        notifyListeners();
+        return;
+      }
+    } catch (e) {
+      status = 'Ошибка';
+      logOutput = 'Не удалось проверить конфигурацию\n$e';
+      notifyListeners();
+      return;
+    }
+
     final test = await engine.testSingBox();
     final err = (test.stderr is List<int>) ? utf8.decode(test.stderr) : test.stderr.toString();
     if (test.exitCode != 0) {
