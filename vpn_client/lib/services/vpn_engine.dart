@@ -85,8 +85,9 @@ class VpnEngine {
 
   /// Generate sing-box configuration from template and save to [configPath].
   Future<void> generateConfig(Server server,
-      {AssetBundle bundle = rootBundle}) async {
-    final template = await bundle.loadString('sing-box/config_template.json');
+      {AssetBundle? bundle}) async {
+    final assetBundle = bundle ?? rootBundle;
+    final template = await assetBundle.loadString('sing-box/config_template.json');
     final config = template
         .replaceAll('{{address}}', server.address)
         .replaceAll('{{port}}', server.port.toString())
