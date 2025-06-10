@@ -116,6 +116,14 @@ set(FLUTTER_TOOL_ENVIRONMENT
 if(NOT VERBOSE_SCRIPT_LOGGING)
   list(APPEND FLUTTER_TOOL_ENVIRONMENT "VERBOSE_SCRIPT_LOGGING=true")
 endif()
+
+# Determine the .bat suffix for Windows
+if(CMAKE_HOST_WIN32)
+  set(BAT_SUFFIX ".bat")
+else()
+  set(BAT_SUFFIX "")
+endif()
+
 add_custom_command(
   OUTPUT ${FLUTTER_LIBRARY} ${FLUTTER_LIBRARY_HEADERS}
     ${CPP_WRAPPER_SOURCES_CORE} ${CPP_WRAPPER_SOURCES_PLUGIN}
@@ -134,3 +142,22 @@ add_custom_target(flutter_assemble DEPENDS
   ${CPP_WRAPPER_SOURCES_PLUGIN}
   ${CPP_WRAPPER_SOURCES_APP}
 )
+
+# Function to install bundle data.
+function(flutter_assemble_install_bundle_data)
+  # Install the Flutter library.
+  install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime)
+  
+  # Install ICU data file.
+  install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime)
+  
+  # Install all other Flutter runtime files from ephemeral directory.
+  install(DIRECTORY "${FLUTTER_EPHEMERAL_DIR}/" 
+    DESTINATION "${CMAKE_INSTALL_PREFIX}" 
+    COMPONENT Runtime
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cc" EXCLUDE
+    PATTERN "*.cmake" EXCLUDE
+    PATTERN "cpp_client_wrapper" EXCLUDE
+  )
+endfunction()
