@@ -19,12 +19,16 @@ class VpnProvider extends ChangeNotifier {
   String status = 'Отключено';
   String logOutput = '';
   bool filesReady = false;
+  bool _isConnected = false; // Статус подключения
   String? _lastOperationResult; // Для отслеживания результата последней операции
 
   VpnProvider({required this.repository, required this.engine});
 
   /// Возвращает результат последней операции (null, 'success', 'error:<message>')
   String? get lastOperationResult => _lastOperationResult;
+  
+  /// Возвращает статус подключения
+  bool get isConnected => _isConnected;
   
   /// Очищает результат последней операции
   void clearLastOperationResult() {
@@ -256,17 +260,19 @@ class VpnProvider extends ChangeNotifier {
         if (processFinished) {
           status = 'Ошибка';
           logOutput += '\nsing-box завершился сразу с кодом: $exitCode\n';
-          processRunning = false;
+          _isConnected = false;
         } else {
           // Процесс еще работает
           status = 'Подключено';
           logOutput += '\nПроцесс sing-box запущен успешно (PID: ${proc.pid})\n';
+          _isConnected = true;
           
           // Асинхронно следим за завершением процесса
           exitCodeFuture.then((code) {
             if (status == 'Подключено') {
               status = 'Ошибка';
               logOutput += '\nsing-box завершился с кодом: $code\n';
+              _isConnected = false;
               notifyListeners();
             }
           });
@@ -275,7 +281,7 @@ class VpnProvider extends ChangeNotifier {
         // Если произошла ошибка при проверке процесса
         status = 'Ошибка';
         logOutput += '\nОшибка проверки процесса: $e\n';
-        processRunning = false;
+        _isConnected = false;
       }
       
       notifyListeners();
@@ -291,6 +297,7 @@ class VpnProvider extends ChangeNotifier {
       engine.stop();
     } finally {
       status = 'Отключено';
+      _isConnected = false;
       logOutput += '\nПроцесс остановлен';
       notifyListeners();
     }
