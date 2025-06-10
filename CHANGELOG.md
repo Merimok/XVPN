@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2025-06-10
+
+### Fixed
+- **Server Addition Bug**: Fixed critical issue where newly added VLESS servers weren't appearing in the server list
+- **Operation Feedback**: Improved success/error feedback mechanism for server operations
+- **Error Handling**: Added proper rollback if server save operation fails
+
+### Improved
+- **Compact UI Design**: Significantly reduced spacing and element sizes throughout the application
+  - Reduced main padding from 20px to 12px
+  - Compressed connection status card padding from 24px to 16px
+  - Reduced main connection button height from 56px to 48px
+  - Decreased logs area height from 200px to 150px
+  - Made ActionChips smaller with 16px icons and 12px font
+  - Compressed statistics cards with smaller padding and icons
+  - Added `dense: true` to all ListTiles in settings for better space utilization
+- **Visual Polish**: Reduced border radius and shadow effects for cleaner appearance
+- **Settings Screen**: Made all settings more compact with reduced spacing
+
+### Technical
+- Added `lastOperationResult` mechanism to `VpnProvider` for better operation tracking
+- Enhanced error handling and rollback logic in `addServer` method
+- Improved separation of concerns for UI feedback
+- Better state management for server operations
+
 ## [1.2.1] - 2025-06-10
 
 ### Fixed
