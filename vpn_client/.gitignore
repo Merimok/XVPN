@@ -1,0 +1,29 @@
+# Flutter generated files
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDE - VSCode
+.vscode/
+
+# IDE - Android Studio / IntelliJ
+*.iml
+.idea/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# macOS
+.DS_Store
+
+# Binary files - should be downloaded manually or via CI/CD
+sing-box/sing-box.exe
+sing-box/wintun.dll
+
+# Generated config files
+config.json

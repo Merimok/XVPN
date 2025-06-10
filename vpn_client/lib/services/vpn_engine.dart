@@ -94,7 +94,7 @@ class VpnEngine {
   }
 
   Future<Process> startSingBox() async {
-    _process = await Process.start(singBoxPath, ['-c', configPath]);
+    _process = await Process.start(singBoxPath, ['run', '-c', configPath]);
     // даём процессу момент, чтобы завершиться при ошибке
     await Future.delayed(Duration(milliseconds: 100));
     return _process!;

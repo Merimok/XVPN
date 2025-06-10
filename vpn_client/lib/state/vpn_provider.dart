@@ -196,6 +196,8 @@ class VpnProvider extends ChangeNotifier {
 
     try {
       final proc = await engine.startSingBox();
+      
+      // Слушаем stdout и stderr
       proc.stdout.transform(utf8.decoder).listen((e) {
         logOutput += e;
         notifyListeners();
@@ -204,13 +206,42 @@ class VpnProvider extends ChangeNotifier {
         logOutput += e;
         notifyListeners();
       });
-      // verify process started
-      if (await proc.exitCode != 0) {
+      
+      // Проверяем что процесс не завершился сразу (даем время на инициализацию)
+      await Future.delayed(Duration(milliseconds: 500));
+      
+      // Проверяем статус процесса без блокировки
+      bool processRunning = true;
+      try {
+        // Проверяем завершился ли процесс без ожидания
+        final exitCode = proc.exitCode;
+        // Если exitCode доступен немедленно, процесс уже завершился
+        if (exitCode.isCompleted) {
+          final code = await exitCode;
+          status = 'Ошибка';
+          logOutput += '\nsing-box завершился сразу с кодом: $code\n';
+          processRunning = false;
+        } else {
+          // Процесс еще работает
+          status = 'Подключено';
+          logOutput += '\nПроцесс sing-box запущен успешно (PID: ${proc.pid})\n';
+          
+          // Асинхронно следим за завершением процесса
+          exitCode.then((code) {
+            if (status == 'Подключено') {
+              status = 'Ошибка';
+              logOutput += '\nsing-box завершился с кодом: $code\n';
+              notifyListeners();
+            }
+          });
+        }
+      } catch (e) {
+        // Если произошла ошибка при проверке процесса
         status = 'Ошибка';
-        logOutput += '\nsing-box завершился преждевременно';
-      } else {
-        status = 'Подключено';
+        logOutput += '\nОшибка проверки процесса: $e\n';
+        processRunning = false;
       }
+      
       notifyListeners();
     } catch (e) {
       status = 'Ошибка';
