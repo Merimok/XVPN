@@ -58,7 +58,8 @@ class HomePage extends StatelessWidget {
             Row(
               children: [
                 ElevatedButton(
-                    onPressed: vpn.status == 'Отключено' ? vpn.connect : null,
+                    onPressed:
+                        vpn.status != 'Подключено' ? vpn.connect : null,
                     child: const Text('Подключиться')),
                 const SizedBox(width: 8),
                 ElevatedButton(
