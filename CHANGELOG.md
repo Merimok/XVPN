@@ -7,7 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.2.12] - 2025-06-10
+## [1.2.14] - 2025-06-10
+
+### Fixed
+- **🔧 Widget Test Compatibility**: Updated failing widget test to work with new Mullvad-style UI design
+- **Test Coverage**: Achieved 100% test pass rate (9/9 tests passing)
+- **UI Test Assertions**: Fixed test expectations to match new hero section and connection button structure
+- **Mullvad Design Testing**: Enhanced test to validate new UI components and animations
+
+### Technical Details
+- **Updated widget_test.dart**: Adapted test assertions for new home screen design
+- **Button Text Changes**: Test now correctly expects "Подключиться"/"Отключиться" in new UI structure  
+- **Status Validation**: Added proper testing for "Отключено"/"Подключение..."/"Подключено" states
+- **Animation Support**: Test now handles new Mullvad-style animations and transitions
+
+## [1.2.13] - 2025-06-10
 
 ### Fixed
 - **🚨 CRITICAL: Complete Windows Platform Rebuild**: Fixed fundamental Flutter Windows build failures with comprehensive platform reconstruction

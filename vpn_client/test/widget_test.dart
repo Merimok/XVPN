@@ -57,7 +57,7 @@ class FakeProcess implements Process {
 }
 
 void main() {
-  testWidgets('Connect button changes status', (tester) async {
+  testWidgets('Connect button changes status in new Mullvad UI', (tester) async {
     // Create a provider with a sample server
     final provider = VpnProvider(
       repository: ServerRepository(), 
@@ -84,18 +84,25 @@ void main() {
     
     await tester.pumpAndSettle();
     
-    // Должна быть кнопка "Подключиться"
+    // В новом Mullvad UI кнопка находится в hero section
+    // Проверяем наличие кнопки подключения по тексту
     expect(find.text('Подключиться'), findsOneWidget);
+    
+    // Проверяем начальный статус
+    expect(find.text('Отключено'), findsOneWidget);
     
     // Нажимаем кнопку подключения
     await tester.tap(find.text('Подключиться'));
     await tester.pump();
     
-    // После нажатия статус должен измениться
-    // Может быть "Подключение..." или "Подключено"
-    expect(find.text('Подключиться'), findsNothing);
+    // После нажатия статус должен измениться на подключение
+    expect(find.text('Подключение...'), findsOneWidget);
     
-    // Ждём завершения анимации
+    // Ждём завершения анимации и проверяем финальное состояние
     await tester.pumpAndSettle();
+    
+    // После подключения кнопка должна показывать "Отключиться"
+    expect(find.text('Отключиться'), findsOneWidget);
+    expect(find.text('Подключено'), findsOneWidget);
   });
 }
