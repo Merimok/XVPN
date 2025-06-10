@@ -28,6 +28,29 @@ class Server {
     this.sni = '',
     this.sid = '',
     this.fp = 'chrome',
+Server? parseVless(String url) {
+  try {
+    final uri = Uri.parse(url.trim());
+    if (uri.scheme != 'vless') return null;
+    final id = uri.userInfo;
+    final address = uri.host;
+    final port = uri.port;
+    final query = uri.queryParameters;
+    return Server(
+      name: uri.fragment.isNotEmpty ? Uri.decodeComponent(uri.fragment) : address,
+      address: address,
+      port: port,
+      id: id,
+      pbk: query['pbk'] ?? '',
+      sni: query['sni'] ?? '',
+      sid: query['sid'] ?? '',
+      fp: query['fp'] ?? 'chrome',
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
   });
 
   factory Server.fromJson(Map<String, dynamic> json) {
@@ -143,17 +166,29 @@ class _MyAppState extends State<MyApp> {
     if (selected == null) return;
     final result = await Process.run('ping', ['-n', '1', selected!.address]);
     setState(() {
-      ping = result.stdout.toString();
-    });
-  }
-
-  Future<void> _addServer() async {
-    final nameController = TextEditingController();
-    final addressController = TextEditingController();
-    final portController = TextEditingController();
-    final idController = TextEditingController();
-    final pbkController = TextEditingController();
-    final sniController = TextEditingController();
+    final vlessController = TextEditingController();
+                  TextField(controller: vlessController, decoration: const InputDecoration(labelText: 'VLESS URL')),
+                      Server? s;
+                      if (vlessController.text.trim().isNotEmpty) {
+                        s = parseVless(vlessController.text.trim());
+                        if (s == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Неверный VLESS URL')));
+                          return;
+                        }
+                      } else {
+                        s = Server(
+                          name: nameController.text,
+                          address: addressController.text,
+                          port: int.tryParse(portController.text) ?? 0,
+                          id: idController.text,
+                          pbk: pbkController.text,
+                          sni: sniController.text,
+                          sid: sidController.text,
+                          fp: fpController.text,
+                        );
+                      }
+                        servers.add(s!);
     final sidController = TextEditingController();
     final fpController = TextEditingController(text: 'chrome');
 
