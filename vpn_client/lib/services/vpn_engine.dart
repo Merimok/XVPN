@@ -99,8 +99,9 @@ class VpnEngine {
   }
 
   // Deprecated: keep for backward compatibility with older tests.
-  Future<void> writeConfig(Server server, {AssetBundle bundle = rootBundle}) =>
-      generateConfig(server, bundle: bundle);
+  Future<void> writeConfig(Server server, {AssetBundle? bundle}) async {
+    await generateConfig(server, bundle: bundle ?? rootBundle);
+  }
 
   void stop() {
     _process?.kill();
