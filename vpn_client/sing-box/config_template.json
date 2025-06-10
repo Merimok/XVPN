@@ -1,0 +1,37 @@
+{
+  "log": {
+    "level": "info"
+  },
+  "inbounds": [
+    {
+      "type": "tun",
+      "interface_name": "XVPN",
+      "inet4_address": "172.19.0.1/30",
+      "mtu": 9000,
+      "auto_route": true,
+      "strict_route": false,
+      "stack": "system"
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "vless",
+      "tag": "vless-out",
+      "server": "{{address}}",
+      "server_port": {{port}},
+      "uuid": "{{id}}",
+      "security": "reality",
+      "reality_opts": {
+        "public_key": "{{pbk}}",
+        "short_id": "{{sid}}",
+        "server_name": "{{sni}}",
+        "spider_x": "/"
+      },
+      "fingerprint": "{{fp}}"
+    }
+  ],
+  "route": {
+    "auto_detect_interface": true,
+    "final": "vless-out"
+  }
+}
