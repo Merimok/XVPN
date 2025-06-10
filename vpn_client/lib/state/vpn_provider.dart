@@ -26,6 +26,15 @@ class VpnProvider extends ChangeNotifier {
   }
 
   Future<void> addServer(Server server) async {
+    final uuidReg = RegExp(
+        r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\$');
+    if (!uuidReg.hasMatch(server.id) ||
+        server.address.isEmpty ||
+        server.port <= 0) {
+      logOutput += 'Неверные параметры сервера\n';
+      notifyListeners();
+      return;
+    }
     if (servers.any((s) => s.id == server.id)) return;
     servers.add(server);
     selected = server;
