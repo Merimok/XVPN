@@ -211,6 +211,8 @@ class _MyAppState extends State<MyApp> {
         status = 'Ошибка';
         logOutput += 'Не удалось подключиться\n\$e';
       });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
