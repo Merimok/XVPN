@@ -1,255 +1,304 @@
-import 'dart:convert';
+// xvpn/lib/main.dart
+// ⓘ Примечание: исполняемый файл sing-box.exe должен находиться в директории ../sing-box относительно корня проекта.
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path_provider/path_provider.dart';
+import 'screens/home_screen.dart';
+import 'screens/server_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/log_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final exeFile = File("../sing-box/sing-box.exe");
+  final exists = await exeFile.exists();
+
+  if (!exists) {
+    runApp(const MissingExeApp());
+  } else {
+    runApp(const XVPNApp());
+  }
+}
 }
 
-class Server {
-  String name;
-  String address;
-  int port;
-  String id;
-  String pbk;
-  String sni;
-  String sid;
-  String fp;
-
-  Server({
-    required this.name,
-    required this.address,
-    required this.port,
-    required this.id,
-    this.pbk = '',
-    this.sni = '',
-    this.sid = '',
-    this.fp = 'chrome',
-  });
-
-  factory Server.fromJson(Map<String, dynamic> json) {
-    return Server(
-      name: json['name'],
-      address: json['address'],
-      port: json['port'],
-      id: json['id'],
-      pbk: json['pbk'] ?? '',
-      sni: json['sni'] ?? '',
-      sid: json['sid'] ?? '',
-      fp: json['fp'] ?? 'chrome',
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'address': address,
-        'port': port,
-        'id': id,
-        'pbk': pbk,
-        'sni': sni,
-        'sid': sid,
-        'fp': fp,
-      };
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  List<Server> servers = [];
-  Server? selected;
-  Process? _process;
-  String ping = '';
-  late String _serversPath;
-
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    final dir = await getApplicationDocumentsDirectory();
-    _serversPath = '${dir.path}/servers.json';
-    await _loadServers();
-  }
-
-  Future<void> _loadServers() async {
-    final file = File(_serversPath);
-    if (await file.exists()) {
-      final data = jsonDecode(await file.readAsString()) as List<dynamic>;
-      setState(() {
-        servers = data.map((e) => Server.fromJson(e)).toList();
-        if (servers.isNotEmpty) selected = servers.first;
-      });
-    } else {
-      final data =
-          jsonDecode(await rootBundle.loadString('assets/servers.json')) as List<dynamic>;
-      setState(() {
-        servers = data.map((e) => Server.fromJson(e)).toList();
-        if (servers.isNotEmpty) selected = servers.first;
-      });
-      await _saveServers();
-    }
-  }
-
-  Future<void> _saveServers() async {
-    final file = File(_serversPath);
-    await file.writeAsString(
-        jsonEncode(servers.map((e) => e.toJson()).toList()));
-  }
-
-  Future<void> _connect() async {
-    if (selected == null) return;
-    final configTemplate = await File('sing-box/config_template.json').readAsString();
-    final config = configTemplate
-        .replaceAll('{{address}}', selected!.address)
-        .replaceAll('{{port}}', selected!.port.toString())
-        .replaceAll('{{id}}', selected!.id)
-        .replaceAll('{{pbk}}', selected!.pbk)
-        .replaceAll('{{sni}}', selected!.sni)
-        .replaceAll('{{sid}}', selected!.sid)
-        .replaceAll('{{fp}}', selected!.fp);
-    final configPath = 'sing-box/config.json';
-    await File(configPath).writeAsString(config);
-
-    try {
-      _process =
-          await Process.start('sing-box/sing-box.exe', ['run', '-c', configPath]);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to start: $e')));
-      }
-      return;
-    }
-    setState(() {});
-  }
-
-  Future<void> _disconnect() async {
-    _process?.kill();
-    _process = null;
-    setState(() {});
-  }
-
-  Future<void> _measurePing() async {
-    if (selected == null) return;
-    final result = await Process.run('ping', ['-n', '1', selected!.address]);
-    setState(() {
-      ping = result.stdout.toString();
-    });
-  }
-
-  Future<void> _addServer() async {
-    final nameController = TextEditingController();
-    final addressController = TextEditingController();
-    final portController = TextEditingController();
-    final idController = TextEditingController();
-    final pbkController = TextEditingController();
-    final sniController = TextEditingController();
-    final sidController = TextEditingController();
-    final fpController = TextEditingController(text: 'chrome');
-
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add Server'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
-            TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
-            TextField(controller: portController, decoration: const InputDecoration(labelText: 'Port')),
-            TextField(controller: idController, decoration: const InputDecoration(labelText: 'UUID')),
-            TextField(controller: pbkController, decoration: const InputDecoration(labelText: 'Public Key')),
-            TextField(controller: sniController, decoration: const InputDecoration(labelText: 'SNI')),
-            TextField(controller: sidController, decoration: const InputDecoration(labelText: 'Short ID')),
-            TextField(controller: fpController, decoration: const InputDecoration(labelText: 'Fingerprint')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              final s = Server(
-                name: nameController.text,
-                address: addressController.text,
-                port: int.tryParse(portController.text) ?? 0,
-                id: idController.text,
-                pbk: pbkController.text,
-                sni: sniController.text,
-                sid: sidController.text,
-                fp: fpController.text,
-              );
-              setState(() {
-                servers.add(s);
-                selected = s;
-              });
-              _saveServers();
-              Navigator.pop(context);
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _removeServer() async {
-    if (selected == null) return;
-    setState(() {
-      servers.remove(selected);
-      selected = servers.isNotEmpty ? servers.first : null;
-    });
-    await _saveServers();
-  }
+class MissingExeApp extends StatelessWidget {
+  const MissingExeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'XVPN - Ошибка',
       home: Scaffold(
-        appBar: AppBar(title: const Text('VLESS VPN Client')),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              DropdownButton<Server>(
-                isExpanded: true,
-                value: selected,
-                items: servers.map((s) => DropdownMenuItem(value: s, child: Text(s.name))).toList(),
-                onChanged: (s) {
-                  setState(() {
-                    selected = s;
-                  });
-                },
-              ),
-              Row(
-                children: [
-                  ElevatedButton(onPressed: _process == null ? _connect : null, child: const Text('Connect')),
-                  const SizedBox(width: 8),
-                  ElevatedButton(onPressed: _process != null ? _disconnect : null, child: const Text('Disconnect')),
-                  const SizedBox(width: 8),
-                  ElevatedButton(onPressed: _addServer, child: const Text('Add')),
-                  const SizedBox(width: 8),
-                  ElevatedButton(onPressed: _removeServer, child: const Text('Remove')),
-                  const SizedBox(width: 8),
-                  ElevatedButton(onPressed: _measurePing, child: const Text('Ping')),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text('Status: ${_process == null ? 'Disconnected' : 'Connected'}'),
-              const SizedBox(height: 8),
-              Text('Ping result:\n$ping'),
-            ],
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.error_outline, size: 64, color: Colors.red),
+                SizedBox(height: 16),
+                Text(
+                  'Файл sing-box.exe не найден в папке /sing-box.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Пожалуйста, убедитесь, что он находится в нужном месте.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class XVPNApp extends StatelessWidget {
+  const XVPNApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'XVPN',
+      theme: ThemeData.light(useMaterial3: true),
+      darkTheme: ThemeData.dark(useMaterial3: true),
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
+      home: const HomeScreen(),
+    );
+  }
+}
+
+// xvpn/lib/screens/home_screen.dart
+import 'package:flutter/material.dart';
+import 'server_screen.dart';
+import 'settings_screen.dart';
+import 'log_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool isConnected = false;
+  String currentServer = "Auto";
+  String latency = "-- ms";
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('XVPN')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isConnected ? Icons.shield : Icons.shield_outlined,
+              size: 100,
+              color: isConnected ? Colors.green : Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isConnected ? "Подключено" : "Не подключено",
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text("Сервер: $currentServer | Пинг: $latency"),
+            const SizedBox(height: 32),
+            FilledButton.tonal(
+              onPressed: () {
+                setState(() {
+                  isConnected = !isConnected;
+                });
+              },
+              child: Text(isConnected ? "Отключиться" : "Подключиться"),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ServerScreen(),
+                  ),
+                );
+                if (result is String) {
+                  setState(() {
+                    currentServer = result;
+                  });
+                }
+              },
+              child: const Text("Выбрать сервер"),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+              child: const Text("Настройки"),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LogScreen(),
+                  ),
+                );
+              },
+              child: const Text("Лог"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// xvpn/lib/screens/server_screen.dart
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class ServerScreen extends StatefulWidget {
+  const ServerScreen({super.key});
+
+  @override
+  State<ServerScreen> createState() => _ServerScreenState();
+}
+
+class _ServerScreenState extends State<ServerScreen> {
+  List<dynamic> servers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadServers();
+  }
+
+  Future<void> loadServers() async {
+    final jsonStr = await rootBundle.loadString('assets/servers.json');
+    setState(() {
+      servers = json.decode(jsonStr);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Выбор сервера")),
+      body: servers.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.separated(
+              itemCount: servers.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final server = servers[index];
+                return ListTile(
+                  title: Text(server['name'] ?? 'Unknown'),
+                  subtitle: Text(server['address'] ?? ''),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    Navigator.pop(context, server['name']);
+                  },
+                );
+              },
+            ),
+    );
+  }
+}
+
+// xvpn/lib/screens/settings_screen.dart
+import 'package:flutter/material.dart';
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool autoConnect = false;
+  bool killSwitch = false;
+  String mode = 'Global';
+  String dns = '1.1.1.1';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Настройки")),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          SwitchListTile(
+            title: const Text("Авто-подключение"),
+            value: autoConnect,
+            onChanged: (val) => setState(() => autoConnect = val),
+          ),
+          SwitchListTile(
+            title: const Text("Kill Switch"),
+            value: killSwitch,
+            onChanged: (val) => setState(() => killSwitch = val),
+          ),
+          const SizedBox(height: 16),
+          const Text("Режим обхода"),
+          DropdownButton<String>(
+            value: mode,
+            isExpanded: true,
+            items: ["Global", "Split Tunneling"].map((m) => DropdownMenuItem(
+              value: m,
+              child: Text(m),
+            )).toList(),
+            onChanged: (val) => setState(() => mode = val!),
+          ),
+          const SizedBox(height: 16),
+          const Text("DNS"),
+          TextField(
+            controller: TextEditingController(text: dns),
+            decoration: const InputDecoration(hintText: "Введите DNS"),
+            onChanged: (val) => dns = val,
+          )
+        ],
+      ),
+    );
+  }
+}
+
+// xvpn/lib/screens/log_screen.dart
+import 'package:flutter/material.dart';
+
+class LogScreen extends StatelessWidget {
+  const LogScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final logs = [
+      "[INFO] Приложение запущено",
+      "[INFO] Попытка подключения...",
+      "[ERROR] Сервер недоступен",
+      "[INFO] Переключение на резервный сервер"
+    ];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text("Журнал логов")),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: logs.length,
+        itemBuilder: (context, index) => Text(logs[index]),
       ),
     );
   }
