@@ -4,7 +4,10 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 import 'package:path/path.dart' as p;
+
+import '../models/server.dart';
 
 class VpnEngine {
   Process? _process;
@@ -46,6 +49,19 @@ class VpnEngine {
   Future<Process> startSingBox() async {
     _process = await Process.start(singBoxPath, ['-c', configPath]);
     return _process!;
+  }
+
+  Future<void> writeConfig(Server server, {AssetBundle bundle = rootBundle}) async {
+    final template = await bundle.loadString('sing-box/config_template.json');
+    final config = template
+        .replaceAll('{{address}}', server.address)
+        .replaceAll('{{port}}', server.port.toString())
+        .replaceAll('{{id}}', server.id)
+        .replaceAll('{{pbk}}', server.pbk)
+        .replaceAll('{{sni}}', server.sni)
+        .replaceAll('{{sid}}', server.sid)
+        .replaceAll('{{fp}}', server.fp);
+    await File(configPath).writeAsString(config);
   }
 
   void stop() {
