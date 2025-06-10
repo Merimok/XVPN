@@ -65,7 +65,7 @@ class MullvadActionButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: isEnabled 
             ? colorScheme.primaryContainer.withOpacity(0.7)
-            : colorScheme.surfaceVariant,
+            : colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isEnabled 
@@ -355,7 +355,7 @@ class _ConnectionStatusIconState extends State<ConnectionStatusIcon>
                     ? const Color(0xFF10B981)
                     : widget.isConnecting
                         ? const Color(0xFFF59E0B)
-                        : colorScheme.surfaceVariant,
+                        : colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: widget.isConnected || widget.isConnecting
                     ? [
@@ -378,7 +378,7 @@ class _ConnectionStatusIconState extends State<ConnectionStatusIcon>
                 size: 28,
                 color: widget.isConnected || widget.isConnecting
                     ? Colors.white
-                    : colorScheme.onSurfaceVariant,
+                    : colorScheme.onSurface,
               ),
             ),
           ),
@@ -403,8 +403,6 @@ class MullvadVpnToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    
     return GestureDetector(
       onTap: onToggle,
       child: Container(

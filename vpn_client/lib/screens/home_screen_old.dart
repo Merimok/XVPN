@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _pulseController;
+  // ignore: unused_field
   late Animation<double> _pulseAnimation;
 
   @override
@@ -412,21 +413,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         size: 16,
         color: onPressed != null 
             ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurfaceVariant,
+            : colorScheme.onSurface,
       ),
       label: Text(
         label,
         style: TextStyle(
           color: onPressed != null 
               ? colorScheme.onPrimaryContainer
-              : colorScheme.onSurfaceVariant,
+              : colorScheme.onSurface,
           fontSize: 12,
         ),
       ),
       onPressed: onPressed,
       backgroundColor: onPressed != null 
           ? colorScheme.primaryContainer
-          : colorScheme.surfaceVariant,
+          : colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -463,6 +464,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // ignore: unused_element
   Widget _buildStatCard({
     required IconData icon,
     required String title,
@@ -537,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               height: 150,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
               ),
@@ -687,6 +689,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  // ignore: unused_element
   void _showSettingsBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,

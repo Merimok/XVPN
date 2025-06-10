@@ -180,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ? [const Color(0xFF10B981), const Color(0xFF059669)]
               : isConnecting
                   ? [const Color(0xFFF59E0B), const Color(0xFFD97706)]
-                  : [colorScheme.surfaceVariant, colorScheme.outline],
+                  : [colorScheme.surfaceContainerHighest, colorScheme.outline],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -446,7 +446,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant,
+              color: colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: colorScheme.outline.withOpacity(0.5)),
             ),

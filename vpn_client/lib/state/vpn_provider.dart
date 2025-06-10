@@ -238,7 +238,6 @@ class VpnProvider extends ChangeNotifier {
       await Future.delayed(Duration(milliseconds: 500));
       
       // Проверяем статус процесса без блокировки
-      bool processRunning = true;
       try {
         // Проверяем завершился ли процесс с помощью timeout
         final exitCodeFuture = proc.exitCode;

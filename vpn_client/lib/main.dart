@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
             secondary: const Color(0xFF7B68EE), // Средний фиолетовый  
             tertiary: const Color(0xFF44337A), // Темный фиолетовый
             surface: const Color(0xFFFFFDF7), // Кремово-белый
-            surfaceVariant: const Color(0xFFF3F2F7), // Светло-серый
+            surfaceContainerHighest: const Color(0xFFF3F2F7), // Светло-серый
             outline: const Color(0xFFE0DFE5), // Границы
           ),
           fontFamily: 'Inter', // Современный шрифт
@@ -95,30 +95,10 @@ class MyApp extends StatelessWidget {
             secondary: const Color(0xFFA78BFA), // Лавандовый
             tertiary: const Color(0xFF6366F1), // Средний фиолетовый
             surface: const Color(0xFF0F0F23), // Очень темный синий
-            surfaceVariant: const Color(0xFF1A1B3E), // Темно-фиолетовый
+            surfaceContainerHighest: const Color(0xFF1A1B3E), // Темно-фиолетовый
             outline: const Color(0xFF2D2E52), // Границы
           ),
           fontFamily: 'Inter',
-        ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-          ),
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6366F1),
-            brightness: Brightness.dark,
-          ),
           appBarTheme: const AppBarTheme(
             elevation: 0,
             centerTitle: true,
