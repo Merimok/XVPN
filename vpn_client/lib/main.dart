@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/services.dart' show rootBundle;
 
 void main() {
   runApp(const MyApp());
@@ -112,6 +113,24 @@ class _MyAppState extends State<MyApp> {
     await file.writeAsString(jsonEncode(servers.map((e) => e.toJson()).toList()));
   }
 
+  Future<void> _generateConfig() async {
+    if (selected == null) return;
+    final template = await rootBundle.loadString('sing-box/config_template.json');
+    final server = selected!;
+    final config = template
+        .replaceAll('{{address}}', server.address)
+        .replaceAll('{{port}}', server.port.toString())
+        .replaceAll('{{id}}', server.id)
+        .replaceAll('{{pbk}}', server.pbk)
+        .replaceAll('{{sni}}', server.sni)
+        .replaceAll('{{sid}}', server.sid)
+        .replaceAll('{{fp}}', server.fp);
+
+    final exeDir = p.dirname(Platform.resolvedExecutable);
+    final configPath = p.join(exeDir, 'config.json');
+    await File(configPath).writeAsString(config);
+  }
+
   Future<void> _connect() async {
     if (selected == null) return;
     final exeDir = p.dirname(Platform.resolvedExecutable);
@@ -128,13 +147,6 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         status = 'Ошибка';
         logOutput = 'sing-box.exe не найден';
-      });
-      return;
-    }
-    if (!await File(configPath).exists()) {
-      setState(() {
-        status = 'Ошибка';
-        logOutput = 'config.json не найден';
       });
       return;
     }
@@ -172,6 +184,8 @@ class _MyAppState extends State<MyApp> {
       });
       return;
     }
+
+    await _generateConfig();
 
     try {
       _process = await Process.start(exePath, ['-c', configPath]);
