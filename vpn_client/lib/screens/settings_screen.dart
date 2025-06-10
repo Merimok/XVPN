@@ -26,7 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         children: [
           // Раздел подключения
           _buildSectionHeader('Подключение', Icons.wifi, colorScheme),
@@ -39,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _autoConnect,
                   onChanged: (value) => setState(() => _autoConnect = value),
                   secondary: const Icon(Icons.auto_mode),
+                  dense: true,
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -46,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Таймаут подключения'),
                   subtitle: Text('${_connectionTimeout.round()} секунд'),
                   trailing: SizedBox(
-                    width: 100,
+                    width: 80,
                     child: Slider(
                       value: _connectionTimeout,
                       min: 10,
@@ -55,12 +56,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onChanged: (value) => setState(() => _connectionTimeout = value),
                     ),
                   ),
+                  dense: true,
                 ),
               ],
             ),
           ),
           
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           
           // Раздел интерфейса
           _buildSectionHeader('Интерфейс', Icons.palette, colorScheme),
@@ -73,6 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _darkMode,
                   onChanged: (value) => setState(() => _darkMode = value),
                   secondary: const Icon(Icons.dark_mode),
+                  dense: true,
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -81,6 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: Text(_getLanguageName(_selectedLanguage)),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () => _showLanguageDialog(),
+                  dense: true,
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
@@ -89,12 +93,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _showNotifications,
                   onChanged: (value) => setState(() => _showNotifications = value),
                   secondary: const Icon(Icons.notifications),
+                  dense: true,
                 ),
               ],
             ),
           ),
           
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           
           // Раздел безопасности
           _buildSectionHeader('Безопасность', Icons.security, colorScheme),
@@ -102,21 +107,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.lock),
+                  leading: const Icon(Icons.vpn_key),
                   title: const Text('Изменить пароль'),
-                  subtitle: const Text('Защитить приложение паролем'),
+                  subtitle: const Text('Установить пароль для приложения'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () => _showChangePasswordDialog(),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.fingerprint),
-                  title: const Text('Биометрия'),
-                  subtitle: const Text('Использовать отпечаток пальца'),
-                  trailing: Switch(
-                    value: false,
-                    onChanged: null, // Пока отключено
-                  ),
+                  dense: true,
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -125,12 +121,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: const Text('Удалить все настройки и серверы'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () => _showClearDataDialog(),
+                  dense: true,
                 ),
               ],
             ),
           ),
           
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           
           // Раздел информации
           _buildSectionHeader('Информация', Icons.info, colorScheme),
@@ -143,6 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: const Text('Версия 1.2.0'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () => _showAboutDialog(),
+                  dense: true,
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -151,6 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: const Text('Отправить отчет разработчикам'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () => _showBugReportDialog(),
+                  dense: true,
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -158,6 +157,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Политика конфиденциальности'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () => _showPrivacyDialog(),
+                  dense: true,
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -166,12 +166,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: const Text('Посмотреть код на GitHub'),
                   trailing: const Icon(Icons.open_in_new),
                   onTap: () => _openGitHub(),
+                  dense: true,
                 ),
               ],
             ),
           ),
           
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
         ],
       ),
     );

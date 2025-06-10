@@ -19,8 +19,17 @@ class VpnProvider extends ChangeNotifier {
   String status = 'Отключено';
   String logOutput = '';
   bool filesReady = false;
+  String? _lastOperationResult; // Для отслеживания результата последней операции
 
   VpnProvider({required this.repository, required this.engine});
+
+  /// Возвращает результат последней операции (null, 'success', 'error:<message>')
+  String? get lastOperationResult => _lastOperationResult;
+  
+  /// Очищает результат последней операции
+  void clearLastOperationResult() {
+    _lastOperationResult = null;
+  }
 
   Future<void> init() async {
     try {
@@ -92,25 +101,40 @@ class VpnProvider extends ChangeNotifier {
   }
 
   Future<void> addServer(Server server) async {
+    _lastOperationResult = null;
+    
     // Проверяем базовые параметры (UUID может быть любым непустым строковым идентификатором)
     if (server.id.isEmpty ||
         server.address.isEmpty ||
         server.port <= 0) {
+      _lastOperationResult = 'error:Неверные параметры сервера';
       logOutput += 'Неверные параметры сервера\n';
       notifyListeners();
       return;
     }
     if (servers.any((s) => s.id == server.id)) {
+      _lastOperationResult = 'error:Сервер с таким ID уже существует';
       logOutput += 'Сервер с таким ID уже существует\n';
       notifyListeners();
       return;
     }
-    servers.add(server);
-    selected = server;
+    
+    logOutput += 'Добавляем сервер: ${server.name} (${server.address}:${server.port})\n';
+    
     try {
+      servers.add(server);
+      selected = server;
       await repository.saveServers(servers);
+      _lastOperationResult = 'success';
+      logOutput += 'Сервер успешно добавлен! Всего серверов: ${servers.length}\n';
     } catch (e) {
-      logOutput += 'Ошибка сохранения сервера\n$e\n';
+      // Если произошла ошибка, удаляем сервер из списка
+      servers.remove(server);
+      if (selected == server) {
+        selected = servers.isNotEmpty ? servers.first : null;
+      }
+      _lastOperationResult = 'error:Ошибка сохранения сервера: $e';
+      logOutput += 'Ошибка сохранения сервера: $e\n';
     }
     notifyListeners();
   }

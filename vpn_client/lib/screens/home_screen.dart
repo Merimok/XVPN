@@ -102,24 +102,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
             child: Column(
               children: [
                 // Connection Status Card
                 _buildConnectionStatusCard(vpn, colorScheme),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 
                 // Server Selection Card
                 _buildServerSelectionCard(vpn, colorScheme),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 
                 // Action Buttons
                 _buildActionButtons(vpn, colorScheme),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 
                 // Statistics Cards Row
                 _buildStatisticsRow(vpn, colorScheme),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 
                 // Logs Card
                 _buildLogsCard(vpn, colorScheme),
@@ -136,10 +136,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final isConnecting = vpn.status == 'Подключение...';
     
     return Card(
-      elevation: 8,
+      elevation: 6,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
             colors: isConnected
                 ? [Colors.green.shade400, Colors.green.shade600]
@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     : [Colors.grey.shade400, Colors.grey.shade600],
           ),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             VpnToggleSwitch(
@@ -156,21 +156,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               isConnecting: isConnecting,
               onToggle: isConnected ? vpn.disconnect : vpn.connect,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
               vpn.status,
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
             if (isConnected && vpn.selected != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 'Подключен к ${vpn.selected!.name}',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   color: Colors.white.withOpacity(0.9),
                 ),
               ),
@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildServerSelectionCard(VpnProvider vpn, ColorScheme colorScheme) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -193,38 +193,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Icon(
                   Icons.dns,
                   color: colorScheme.primary,
+                  size: 20,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Выбор сервера',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
                 border: Border.all(color: colorScheme.outline),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<Server>(
                   isExpanded: true,
                   value: vpn.selected,
                   icon: Icon(Icons.expand_more, color: colorScheme.primary),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   items: vpn.servers
                       .map((s) => DropdownMenuItem(
                             value: s,
                             child: Row(
                               children: [
                                 Container(
-                                  width: 12,
-                                  height: 12,
+                                  width: 8,
+                                  height: 8,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: s.isBuiltIn 
@@ -232,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         : colorScheme.primary,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,12 +243,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         s.name,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w500,
+                                          fontSize: 14,
                                         ),
                                       ),
                                       Text(
                                         '${s.address}:${s.port}',
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 11,
                                           color: colorScheme.onSurface.withOpacity(0.6),
                                         ),
                                       ),
@@ -256,15 +258,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ),
                                 if (s.isBuiltIn)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                     decoration: BoxDecoration(
                                       color: Colors.green.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(3),
                                     ),
                                     child: Text(
                                       'ВСТРОЕННЫЙ',
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: 8,
                                         color: Colors.green.shade700,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -290,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         // Main Connection Button
         SizedBox(
           width: double.infinity,
-          height: 56,
+          height: 48,
           child: ElevatedButton(
             onPressed: vpn.status == 'Подключено' 
                 ? vpn.disconnect
@@ -303,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   : colorScheme.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
             child: Row(
@@ -313,13 +315,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   vpn.status == 'Подключено' 
                       ? Icons.stop 
                       : Icons.play_arrow,
-                  size: 24,
+                  size: 20,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   vpn.status == 'Подключено' ? 'Отключиться' : 'Подключиться',
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -327,12 +329,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+
+        // Warning message
+        if (!vpn.filesReady) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning,
+                  color: colorScheme.onErrorContainer,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Не найден файл sing-box.exe. Подключение невозможно.',
+                    style: TextStyle(
+                      color: colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         
         // Secondary Action Buttons
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             _buildActionChip(
               icon: Icons.add,
@@ -375,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return ActionChip(
       avatar: Icon(
         icon, 
-        size: 18,
+        size: 16,
         color: onPressed != null 
             ? colorScheme.onPrimaryContainer
             : colorScheme.onSurfaceVariant,
@@ -386,6 +420,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           color: onPressed != null 
               ? colorScheme.onPrimaryContainer
               : colorScheme.onSurfaceVariant,
+          fontSize: 12,
         ),
       ),
       onPressed: onPressed,
@@ -393,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ? colorScheme.primaryContainer
           : colorScheme.surfaceVariant,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
       ),
     );
   }
@@ -467,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildLogsCard(VpnProvider vpn, ColorScheme colorScheme) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -476,12 +511,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.terminal, color: colorScheme.primary),
+                    Icon(Icons.terminal, color: colorScheme.primary, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       'Логи подключения',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -491,55 +526,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 if (vpn.logOutput.isNotEmpty)
                   IconButton.filledTonal(
                     onPressed: () => _copyLogs(context, vpn.logOutput),
-                    icon: const Icon(Icons.copy, size: 18),
+                    icon: const Icon(Icons.copy, size: 16),
                     tooltip: 'Копировать логи',
+                    iconSize: 16,
                   ),
               ],
             ),
-            if (!vpn.filesReady) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.warning,
-                      color: colorScheme.onErrorContainer,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Не найден файл sing-box.exe. Подключение невозможно.',
-                        style: TextStyle(
-                          color: colorScheme.onErrorContainer,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Container(
-              height: 200,
+              height: 150,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: colorScheme.surfaceVariant.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
               ),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               child: SingleChildScrollView(
                 child: SelectableText(
                   vpn.logOutput.isEmpty ? 'Логи появятся здесь...' : vpn.logOutput,
                   style: TextStyle(
                     fontFamily: 'monospace',
-                    fontSize: 12,
+                    fontSize: 11,
                     color: vpn.logOutput.isEmpty 
                         ? colorScheme.onSurface.withOpacity(0.5)
                         : colorScheme.onSurface,
@@ -619,11 +627,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final srv = parseVless(controller.text.trim());
       if (srv != null) {
         await vpn.addServer(srv);
-        if (!vpn.logOutput.contains('Неверные параметры')) {
+        final operationResult = vpn.lastOperationResult;
+        if (operationResult == 'success') {
           _showSnackBar(context, 'Сервер успешно добавлен!', Icons.check, Colors.green);
-        } else {
-          _showSnackBar(context, 'Ошибка: ${vpn.logOutput.split('\n').last}', Icons.error, Colors.red);
+        } else if (operationResult != null && operationResult.startsWith('error:')) {
+          final errorMessage = operationResult.substring(6);
+          _showSnackBar(context, 'Ошибка: $errorMessage', Icons.error, Colors.red);
         }
+        vpn.clearLastOperationResult();
       } else {
         _showSnackBar(context, 'Неверный VLESS URL', Icons.error, Colors.red);
       }
