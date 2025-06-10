@@ -4,9 +4,13 @@
   },
   "inbounds": [
     {
-      "type": "socks",
-      "listen": "127.0.0.1",
-      "listen_port": 1080
+      "type": "tun",
+      "interface_name": "XVPN",
+      "inet4_address": "172.19.0.1/30",
+      "mtu": 9000,
+      "auto_route": true,
+      "strict_route": false,
+      "stack": "system"
     }
   ],
   "outbounds": [
@@ -31,5 +35,9 @@
         }
       }
     }
-  ]
+  ],
+  "route": {
+    "auto_detect_interface": true,
+    "final": "vless-out"
+  }
 }

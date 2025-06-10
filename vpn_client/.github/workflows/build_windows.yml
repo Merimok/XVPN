@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p vpn_client/sing-box
-          curl -Lo vpn_client/sing-box/sing-box.exe https://github.com/SagerNet/sing-box/releases/download/v1.8.6/sing-box-1.8.6-windows-amd64.exe
+          curl -Lo vpn_client/sing-box/sing-box.exe https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-windows-amd64.exe
 
       - name: Install dependencies
         run: flutter pub get
