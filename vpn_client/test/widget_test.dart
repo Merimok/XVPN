@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:vpn_client/main.dart';
+import 'package:vpn_client/screens/home_screen.dart';
 import 'package:vpn_client/state/vpn_provider.dart';
 import 'package:vpn_client/services/server_repository.dart';
 import 'package:vpn_client/services/vpn_engine.dart';
@@ -43,7 +43,7 @@ void main() {
       ChangeNotifierProvider(
         create: (_) => VpnProvider(
             repository: ServerRepository(), engine: FakeVpnEngine())..init(),
-        child: const MaterialApp(home: HomePage()),
+        child: const MaterialApp(home: HomeScreen()),
       ),
     );
     await tester.pumpAndSettle();
