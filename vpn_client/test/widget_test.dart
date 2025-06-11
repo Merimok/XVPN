@@ -37,7 +37,6 @@ class FakeVpnEngine extends VpnEngine {
     // Fake stop - do nothing
   }
 }
-}
 
 class FakeProcess implements Process {
   final StreamController<List<int>> _stderrController = StreamController<List<int>>();
@@ -94,7 +93,7 @@ void main() {
     // Test основных UI компонентов вместо конкретного поведения
     // Проверяем, что есть кнопка подключения (в любом состоянии)
     final connectButton = find.byType(ElevatedButton);
-    expect(connectButton, findsAtLeastNWidget(1));
+    expect(connectButton, findsAtLeastNWidgets(1));
     
     // Проверяем, что есть текст статуса
     final statusTexts = ['Отключено', 'Подключено', 'Подключение...', 'Ошибка'];
@@ -111,7 +110,7 @@ void main() {
     expect(find.byType(DropdownButton<Server>), findsOneWidget);
     
     // Проверяем, что сервер отображается в списке
-    expect(find.text('Test Server'), findsAtLeastNWidget(1));
+    expect(find.text('Test Server'), findsAtLeastNWidgets(1));
     
     // Простой тест взаимодействия - нажимаем кнопку
     final buttons = find.byType(ElevatedButton);
