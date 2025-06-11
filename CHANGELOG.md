@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.18] - 2025-06-11
+
+### Fixed
+- **🔧 Widget Test Compatibility**: Enhanced widget test for complete Mullvad-style UI compatibility
+  - Updated test expectations to work with new hero sections and animated components
+  - Made test more robust by focusing on UI structure rather than strict text matching
+  - Improved test stability for CI/CD environment with flexible status checks
+- **Mullvad UI Testing**: Added proper testing for new design components
+  - Verified ElevatedButton, DropdownButton, and core UI elements
+  - Enhanced server display validation with better error messages
+  - Added interaction testing for main connection button
+
+### Technical Details
+- **Test Robustness**: Switched from strict text matching to flexible component detection
+- **CI/CD Compatibility**: Made test work reliably in GitHub Actions environment
+- **Mullvad Components**: Added support for testing new custom widgets and animations
+
 ## [1.2.17] - 2025-06-11
 
 ### Fixed

@@ -63,7 +63,7 @@ class FakeProcess implements Process {
 }
 
 void main() {
-  testWidgets('Home screen loads and displays UI components', (tester) async {
+  testWidgets('Home screen displays Mullvad-style UI components correctly', (tester) async {
     // Create a provider with a sample server
     final provider = VpnProvider(
       repository: ServerRepository(), 
@@ -90,35 +90,37 @@ void main() {
     
     await tester.pumpAndSettle();
     
-    // Test основных UI компонентов вместо конкретного поведения
-    // Проверяем, что есть кнопка подключения (в любом состоянии)
-    final connectButton = find.byType(ElevatedButton);
-    expect(connectButton, findsAtLeastNWidgets(1));
+    // Test that basic UI structure is present
+    // Check for main ElevatedButton (connect/disconnect button)
+    expect(find.byType(ElevatedButton), findsWidgets);
     
-    // Проверяем, что есть текст статуса
+    // Check for server dropdown (core functionality)
+    expect(find.byType(DropdownButton<Server>), findsOneWidget);
+    
+    // Check that the test server appears in UI
+    expect(find.text('Test Server'), findsWidgets);
+    
+    // Verify status text is displayed (any valid status)
     final statusTexts = ['Отключено', 'Подключено', 'Подключение...', 'Ошибка'];
-    bool hasStatusText = false;
+    bool hasValidStatus = false;
     for (final status in statusTexts) {
       if (tester.any(find.text(status))) {
-        hasStatusText = true;
+        hasValidStatus = true;
         break;
       }
     }
-    expect(hasStatusText, isTrue, reason: 'Should display some status text');
+    expect(hasValidStatus, isTrue, reason: 'Should display a valid status text');
     
-    // Проверяем, что есть dropdown для серверов
-    expect(find.byType(DropdownButton<Server>), findsOneWidget);
-    
-    // Проверяем, что сервер отображается в списке
-    expect(find.text('Test Server'), findsAtLeastNWidgets(1));
-    
-    // Простой тест взаимодействия - нажимаем кнопку
-    final buttons = find.byType(ElevatedButton);
-    if (tester.any(buttons)) {
-      await tester.tap(buttons.first);
+    // Test basic interaction - try to tap main button if it exists
+    final elevatedButtons = find.byType(ElevatedButton);
+    if (tester.any(elevatedButtons)) {
+      // Just verify buttons respond to taps without strict state checking
+      await tester.tap(elevatedButtons.first);
       await tester.pump();
-      // Просто проверяем, что UI отвечает на нажатие
-      expect(tester.binding.hasScheduledFrame || !tester.binding.hasScheduledFrame, isTrue);
+      
+      // After interaction, UI should still be valid
+      expect(find.byType(MaterialApp), findsOneWidget);
+      expect(find.byType(Scaffold), findsOneWidget);
     }
   });
 }
