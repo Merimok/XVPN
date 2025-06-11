@@ -4,8 +4,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:vpn_client/models/server.dart';
-import 'package:vpn_client/screens/home_screen.dart';
 import 'package:vpn_client/state/vpn_provider.dart';
 import 'package:vpn_client/services/server_repository.dart';
 import 'package:vpn_client/services/vpn_engine.dart';
