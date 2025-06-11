@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.16] - 2025-06-11
+
+### Fixed
+- **🔧 GitHub Actions CMake Build**: Fixed CMake configuration issues preventing Windows builds
+- **Plugin System**: Simplified plugin handling for CI/CD environment compatibility
+- **Flutter Library**: Updated CMakeLists.txt to work without complex Flutter tool dependencies
+- **Build Process**: Eliminated MSBUILD "Project file does not exist" errors
+
+### Technical Details
+- **Simplified flutter/CMakeLists.txt**: Removed complex Flutter tool backend dependencies
+- **Plugin Compatibility**: Updated generated_plugins.cmake for GitHub Actions environment
+- **Install Function**: Enhanced flutter_assemble_install_bundle_data with existence checks
+- **Error Handling**: Added proper conditional builds for missing dependencies
+
 ## [1.2.15] - 2025-06-11
 
 ### Fixed
