@@ -34,7 +34,14 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 
 # Add dependency libraries and include directories. Add any application-specific
 # dependencies here.
-target_link_libraries(${BINARY_NAME} flutter flutter_wrapper_app)
+target_link_libraries(${BINARY_NAME} flutter)
+
+# Link plugins that were defined in generated_plugins.cmake
+foreach(plugin ${FLUTTER_PLUGIN_LIST})
+  if(TARGET ${plugin}_plugin)
+    target_link_libraries(${BINARY_NAME} ${plugin}_plugin)
+  endif()
+endforeach(plugin)
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)

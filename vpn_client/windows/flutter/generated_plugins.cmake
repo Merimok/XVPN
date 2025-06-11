@@ -11,14 +11,17 @@ list(APPEND FLUTTER_FFI_PLUGIN_LIST
 
 set(PLUGIN_BUNDLED_LIBRARIES)
 
-# Simplified plugin handling for development environment
-# In a real build, Flutter tool would create proper plugin symlinks
+# For CI/CD builds, create minimal plugin implementations
 foreach(plugin ${FLUTTER_PLUGIN_LIST})
-  # Skip plugin linking in development mode
-  # Real Flutter build will handle this properly
+  if(plugin STREQUAL "path_provider_windows")
+    # Create minimal path_provider_windows plugin
+    add_library(${plugin}_plugin INTERFACE)
+    target_include_directories(${plugin}_plugin INTERFACE
+      "${CMAKE_CURRENT_SOURCE_DIR}/ephemeral"
+    )
+  endif()
 endforeach(plugin)
 
 foreach(ffi_plugin ${FLUTTER_FFI_PLUGIN_LIST})
-  # Skip FFI plugin linking in development mode
-  # Real Flutter build will handle this properly
+  # Handle FFI plugins if needed in the future
 endforeach(ffi_plugin)
