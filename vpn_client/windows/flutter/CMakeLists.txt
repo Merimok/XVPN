@@ -1,6 +1,8 @@
 # Generated file, do not edit.
 
 # Minimal Flutter CMake configuration for CI/CD compatibility
+cmake_minimum_required(VERSION 3.15)
+project(flutter_wrapper LANGUAGES CXX)
 
 # Flutter library and tool build rules.
 set(FLUTTER_ROOT "C:\\flutter" CACHE STRING "Flutter SDK root directory")
