@@ -8,7 +8,7 @@ project(runner LANGUAGES CXX)
 # work.
 #
 # Any new source files that you add to the application should be added here.
-add_executable(${BINARY_NAME}
+add_executable(${BINARY_NAME} WIN32
   "flutter_window.cpp"
   "main.cpp"
   "utils.cpp"
@@ -21,6 +21,12 @@ add_executable(${BINARY_NAME}
 # Apply the standard set of build settings. This can be removed for applications
 # that need different build settings.
 apply_standard_settings(${BINARY_NAME})
+
+# Configure build properties
+set_target_properties(${BINARY_NAME} PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+)
 
 # Add preprocessor definitions for the build version.
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION=\"${FLUTTER_VERSION}\"")
@@ -35,6 +41,10 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 # Add dependency libraries and include directories. Add any application-specific
 # dependencies here.
 target_link_libraries(${BINARY_NAME} flutter)
+
+# Add generated plugin registrant
+set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../flutter")
+target_include_directories(${BINARY_NAME} PRIVATE "${FLUTTER_MANAGED_DIR}")
 
 # Link plugins that were defined in generated_plugins.cmake
 foreach(plugin ${FLUTTER_PLUGIN_LIST})

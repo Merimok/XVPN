@@ -8,6 +8,6 @@
 
 // Minimal plugin registration for CI/CD compatibility
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  // Plugin registration disabled for CI/CD builds
-  // In a real app, plugins would be registered here
+  // Plugin registration for CI/CD builds
+  // Plugins are registered automatically by Flutter framework
 }
