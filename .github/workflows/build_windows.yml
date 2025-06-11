@@ -23,6 +23,16 @@ jobs:
         run: flutter pub get
         working-directory: vpn_client
 
+      - name: Ensure Windows platform
+        shell: bash
+        working-directory: vpn_client
+        run: |
+          if [ ! -f "windows/CMakeLists.txt" ] || [ ! -d "windows/runner" ]; then
+            flutter create --platforms=windows .
+          else
+            flutter create --platforms=windows .
+          fi
+
       - name: Download latest sing-box binary
         shell: bash
         run: |

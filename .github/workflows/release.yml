@@ -22,6 +22,16 @@ jobs:
         run: flutter pub get
         working-directory: vpn_client
 
+      - name: Ensure Windows platform
+        shell: bash
+        working-directory: vpn_client
+        run: |
+          if [ ! -f "windows/CMakeLists.txt" ] || [ ! -d "windows/runner" ]; then
+            flutter create --platforms=windows .
+          else
+            flutter create --platforms=windows .
+          fi
+
       - name: Download latest sing-box binary
         shell: bash
         run: |
@@ -57,7 +67,11 @@ jobs:
         shell: bash
         working-directory: vpn_client/build/windows/runner/Release
         run: |
-          zip -r ../../XVPN-Windows-${{ github.ref_name }}.zip .
+          if command -v 7z >/dev/null 2>&1; then
+            7z a -tzip ../../XVPN-Windows-${{ github.ref_name }}.zip .
+          else
+            powershell -Command "Compress-Archive -Path * -DestinationPath ../../XVPN-Windows-${{ github.ref_name }}.zip"
+          fi
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
