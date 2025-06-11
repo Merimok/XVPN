@@ -1,0 +1,39 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.24.3'
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: vpn_client
+
+      - name: Run analyzer
+        run: flutter analyze
+        working-directory: vpn_client
+
+      - name: Run tests
+        run: flutter test --coverage
+        working-directory: vpn_client
+
+      - name: Upload coverage
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: vpn_client/coverage
