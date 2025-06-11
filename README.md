@@ -176,6 +176,14 @@ flutter test test/server_test.dart
 - Integration tests for VPN engine
 - UI widget tests
 
+## 🔄 CI/CD
+
+Automated GitHub Actions handle code analysis, testing and Windows builds.
+
+- `build.yml` runs `flutter analyze` and `flutter test` on pushes and pull requests.
+- `build_windows.yml` builds the Windows release with dependencies.
+- `release.yml` packages a ZIP file for tagged releases using 7-Zip when available.
+
 ## 🏗️ Architecture
 
 ### Design Patterns
